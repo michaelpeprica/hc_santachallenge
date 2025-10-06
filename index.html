@@ -7,87 +7,48 @@
   <meta name="description" content="Offline HTML aplikace pro vánoční soutěž operátorů: podpora mobilní aplikace, prodeje a efektivity." />
   <style>
     :root{
-      --bg:#0f172a;          /* slate-900 */
-      --panel:#111827cc;     /* gray-900 with alpha */
-      --soft:#1f2937;        /* gray-800 */
-      --muted:#94a3b8;       /* slate-400 */
-      --text:#e5e7eb;        /* gray-200 */
-      --brand:#22d3ee;       /* cyan-400 */
-      --brand-2:#10b981;     /* emerald-500 */
-      --accent:#f59e0b;      /* amber-500 */
-      --danger:#ef4444;      /* red-500 */
-      --success:#34d399;     /* green-400 */
-      --card:#0b1226;        /* custom */
+      --bg:#0f172a; --soft:#1f2937; --muted:#94a3b8; --text:#e5e7eb; --brand:#22d3ee; --brand-2:#10b981; --accent:#f59e0b; --danger:#ef4444; --card:#0b1226;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif; 
-      background: radial-gradient(1200px 800px at 10% -10%, #1b2a52 0%, transparent 60%),
-                  radial-gradient(900px 700px at 110% 10%, #16304f 0%, transparent 60%),
-                  var(--bg);
-      color:var(--text);
-    }
-    header{
-      position:sticky; top:0; z-index:10;
-      backdrop-filter:saturate(1.2) blur(8px);
-      background:linear-gradient(180deg, #0b1226cc, #0b122680);
-      border-bottom:1px solid #1f2a44;
-    }
-    .wrap{max-width:1200px; margin:0 auto; padding:16px;}
-    .title{
-      display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.4px;
-    }
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif; background: radial-gradient(1200px 800px at 10% -10%, #1b2a52 0%, transparent 60%), radial-gradient(900px 700px at 110% 10%, #16304f 0%, transparent 60%), var(--bg); color:var(--text);}    
+    header{position:sticky; top:0; z-index:10; backdrop-filter:saturate(1.2) blur(8px); background:linear-gradient(180deg, #0b1226cc, #0b122680); border-bottom:1px solid #1f2a44;}
+    .wrap{max-width:1200px; margin:0 auto; padding:16px}
+    .title{display:flex; align-items:center; gap:12px; font-weight:800}
     .title .logo{font-size:28px}
     .subtitle{color:var(--muted); font-size:14px}
-
-    /* Tabs */
     .tabs{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
     .tab{padding:10px 14px; border-radius:12px; background:#0d1731; color:#cbd5e1; cursor:pointer; border:1px solid transparent; user-select:none}
     .tab.active{background:linear-gradient(180deg,#102046,#0e1a37); border-color:#20325c; color:white; box-shadow:0 0 0 1px #0d1b36 inset, 0 10px 30px -20px #22d3ee}
     .grid{display:grid; gap:16px}
     @media(min-width:900px){.grid.cols-2{grid-template-columns:1fr 1fr}}
     @media(min-width:1200px){.grid.cols-3{grid-template-columns:2fr 1fr 1fr}}
-
-    .card{
-      background:linear-gradient(180deg,#0e1833,#0b1226); border:1px solid #1c2a4b; border-radius:16px; padding:16px;
-      box-shadow:0 10px 30px -22px #000 inset, 0 12px 40px -28px #000;
-    }
+    .card{background:linear-gradient(180deg,#0e1833,#0b1226); border:1px solid #1c2a4b; border-radius:16px; padding:16px; box-shadow:0 10px 30px -22px #000 inset, 0 12px 40px -28px #000}
     .card h3{margin:0 0 8px 0; font-size:16px}
     .row{display:flex; gap:8px; flex-wrap:wrap}
-    input,select,button,textarea{
-      background:#0a1329; color:#e2e8f0; border:1px solid #1f2e54; padding:10px 12px; border-radius:12px; font:inherit
-    }
-    input::placeholder, textarea::placeholder{color:#64748b}
+    input,select,button{background:#0a1329; color:#e2e8f0; border:1px solid #1f2e54; padding:10px 12px; border-radius:12px; font:inherit}
     button{cursor:pointer}
     .btn{background:linear-gradient(180deg,#0f2349,#0c1a35); border-color:#1f2e54}
-    .btn-primary{background:linear-gradient(180deg,#0f2b51,#0d2346); border-color:#2b436f}
     .btn-cta{background:linear-gradient(180deg,#0e3b39,#0a2d2b); border-color:#1d6b61}
     .btn-danger{background:linear-gradient(180deg,#451515,#2a0f0f); border-color:#6b1f1f}
-    .btn-accent{background:linear-gradient(180deg,#3c2a08,#2a1c05); border-color:#5a3c10}
-
     .kpi{display:flex; gap:12px; align-items:baseline; padding:12px 0}
     .kpi .v{font-size:28px; font-weight:800}
     .kpi .l{color:var(--muted)}
-
     .leaderboard table{width:100%; border-collapse:collapse}
     .leaderboard th,.leaderboard td{padding:10px; border-bottom:1px dashed #223357; text-align:left}
     .leaderboard tr:hover{background:#0b1735}
-
     .progress{height:14px; background:#0a142f; border:1px solid #1b2b56; border-radius:999px; overflow:hidden}
     .progress > span{display:block; height:100%; background:linear-gradient(90deg, var(--brand), var(--brand-2));}
-
-    .badge{display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:#0a1d18; border:1px solid #1d6b61; color:#c7f9ec; font-size:12px}
     .pill{display:inline-flex; padding:2px 8px; border-radius:999px; background:#0e1730; border:1px solid #20325c; color:#e2e8f0; font-size:12px}
-
     .footer{color:#64748b; font-size:12px; text-align:center; padding:24px}
-
     .snow{position:fixed; inset:0; pointer-events:none; z-index:0}
     .content{position:relative; z-index:1}
-
     .mini{font-size:12px; color:var(--muted)}
-
-    details summary{cursor:pointer}
+    /* Login overlay */
+    #loginOverlay{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(6px) saturate(1.2); background:rgba(11,18,38,.7); z-index:20}
+    .panel{width:min(720px, calc(100% - 32px)); background:linear-gradient(180deg,#0e1833,#0b1226); border:1px solid #1c2a4b; border-radius:18px; padding:18px}
+    .roleToggle{display:flex; gap:8px; margin:10px 0}
+    .roleToggle button{flex:1}
   </style>
 </head>
 <body>
@@ -98,52 +59,66 @@
         <div class="logo">🎅✨</div>
         <div>
           <div>Santa App Challenge — <span class="pill">Cesta k vánoční kometě</span></div>
-          <div class="subtitle">Gamifikovaná soutěž pro operátory: podpora mobilní aplikace, prodeje a efektivity.</div>
+          <div class="subtitle">Gamifikovaná soutěž pro operátory: podpora mobilní aplikace, prodeje a efektivity. Offline, bez serveru (LocalStorage).</div>
         </div>
+        <div style="margin-left:auto" id="sessionBox" class="mini"></div>
       </div>
       <nav class="tabs" id="tabs"></nav>
     </div>
   </header>
 
-  <!-- ✅ Firebase přihlášení panel (zobrazuje se nahoře vpravo) -->
-  <div id="authBox" class="card" style="position:fixed; right:16px; top:76px; z-index:1000; max-width:340px; display:block">
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px">
-      <div id="authState" class="mini">Nepřihlášen</div>
-      <div class="row" style="gap:6px">
-        <button type="button" id="logoutBtn" class="btn" style="display:none">Odhlásit</button>
+  <!-- LOGIN OVERLAY -->
+  <div id="loginOverlay" style="display:none">
+    <div class="panel">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px">
+        <h2 style="margin:0">Přihlášení do soutěže</h2>
+        <span class="mini">Data se ukládají lokálně</span>
+      </div>
+      <div class="roleToggle">
+        <button id="btnRoleManager" class="btn">Chci se přihlásit jako <b>Vedoucí</b></button>
+        <button id="btnRoleOperator" class="btn-cta">Chci se přihlásit jako <b>Operátor</b></button>
+      </div>
+      <div id="managerLogin" class="card" style="display:none">
+        <h3>Vedoucí</h3>
+        <div class="mini">Zadej přihlašovací heslo (výchozí <code>VelimTomuTady2025</code>). Lze změnit v Nastavení → Zabezpečení.</div>
+        <form id="managerForm" class="row" style="margin-top:8px">
+          <input name="name" placeholder="Jméno vedoucího" required style="flex:1"/>
+          <input name="pass" type="password" placeholder="Heslo" required/>
+          <button class="btn-cta">Přihlásit</button>
+        </form>
+      </div>
+      <div id="operatorLogin" class="card" style="display:none">
+        <h3>Operátor</h3>
+        <div class="mini">Vyber své jméno ze seznamu a zadej PIN.</div>
+        <form id="operatorForm" class="row" style="margin-top:8px">
+          <select name="operatorId" id="opPick" required style="flex:1"><option value="">– Vyber operátora –</option></select>
+          <input name="pin" type="password" placeholder="PIN" required style="width:180px"/>
+          <button class="btn-cta">Přihlásit</button>
+        </form>
+        <div class="mini">PIN nastavuje vedoucí v záložce Operátoři.</div>
       </div>
     </div>
-    <form id="loginForm" class="row">
-      <input type="email" name="email" placeholder="email" required>
-      <input type="password" name="password" placeholder="heslo" required>
-      <button type="submit" class="btn-cta">Přihlásit</button>
-    </form>
-    <div class="mini" style="margin-top:6px">Tip: Pokud jste přihlášeni, body se ukládají do Firestore a uvidí je celý tým.</div>
   </div>
 
-
   <main class="wrap content" id="app"></main>
-
-  <div class="footer">© 2025 – Interní soutěžní nástroj. Data se ukládají pouze lokálně do vašeho prohlížeče.</div>
+  <div class="footer">© 2025 – Interní soutěžní nástroj. Data se ukládají pouze lokálně ve vašem prohlížeči.</div>
 
 <script>
 /********************
- * Jednoduchý stav + uložení
+ * Lokální session (role + přihlášený operátor)
+ ********************/
+const SESSION_KEY = 'santa_session_v1';
+function getSession(){ try{return JSON.parse(localStorage.getItem(SESSION_KEY))||{role:null, operatorId:null, managerName:null};}catch{ return {role:null, operatorId:null, managerName:null}; } }
+function setSession(s){ localStorage.setItem(SESSION_KEY, JSON.stringify(s)); render(); }
+function clearSession(){ localStorage.removeItem(SESSION_KEY); render(); }
+
+/********************
+ * Stav + uložení
  ********************/
 const STORAGE_KEY = 'santa_app_challenge_v1';
 const todayISO = () => new Date().toISOString().slice(0,10);
 const defaultConfig = {
-  contest:{
-    name:"Santa App Challenge",
-    start:"2025-11-15",
-    end:"2025-12-22",
-    milestones:[
-      {points:50,  label:"🎁 Perníkové městečko"},
-      {points:120, label:"🛷 Sobí průsmyk"},
-      {points:220, label:"🏠 Vánoční vesnice"},
-      {points:350, label:"🌟 Zlatá kometa"}
-    ]
-  },
+  contest:{ name:"Santa App Challenge", start:"2025-11-15", end:"2025-12-22", milestones:[ {points:50,label:"🎁 Perníkové městečko"},{points:120,label:"🛷 Sobí průsmyk"},{points:220,label:"🏠 Vánoční vesnice"},{points:350,label:"🌟 Zlatá kometa"} ]},
   activities:[
     {id:'app_activation', name:'Aktivace mobilní aplikace', points:10, category:'Appka'},
     {id:'product_small', name:'Prodej doplňkové služby', points:15, category:'Prodej'},
@@ -155,90 +130,78 @@ const defaultConfig = {
   ],
   operators:[],
   logs:[], // {id, date, operatorId, activityId, points, note}
+  security:{ managerPassword:"VelimTomuTady2025" }
 };
-
 let state = load() || defaultConfig;
+// bezpečná migrace přidané sekce security
+if(!state.security){ state.security = { managerPassword: "VelimTomuTady2025" }; save(); }
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function load(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)); }catch(e){ return null } }
+function resetAll(){ if(confirm('Opravdu smazat všechna lokální data?')){ localStorage.removeItem(STORAGE_KEY); state = JSON.parse(JSON.stringify(defaultConfig)); save(); render(); }}
 
-function save(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-function load(){
-  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)); }catch(e){ return null }
-}
-function resetAll(){
-  if(confirm('Opravdu smazat všechna lokální data?')){
-    localStorage.removeItem(STORAGE_KEY);
-    state = JSON.parse(JSON.stringify(defaultConfig));
-    render();
-  }
-}
-
-/********************
- * Pomocné funkce
- ********************/
-const by = f => (a,b)=> f(a)>f(b)?1:f(a)<f(b)?-1:0;
+/******************** Pomocné ********************/
 const sum = arr => arr.reduce((a,b)=>a+b,0);
 const uid = () => Math.random().toString(36).slice(2,9);
 const weekKey = (dStr)=>{ const d=new Date(dStr); const oneJan = new Date(d.getFullYear(),0,1); const day = Math.floor((d-oneJan)/86400000)+oneJan.getDay(); const w = Math.ceil(day/7); return `${d.getFullYear()}-W${String(w).padStart(2,'0')}`};
 const inRange = (dStr, start, end)=>{ const d=new Date(dStr); return (!start||d>=new Date(start)) && (!end||d<=new Date(end)); };
+function escapeHTML(s){ return (s||'').toString().replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+function escapeAttr(s){ return escapeHTML(s).replace(/\n/g,' '); }
+function flash(msg){ const d=document.createElement('div'); d.textContent=msg; Object.assign(d.style,{position:'fixed',right:'16px',bottom:'16px',background:'#0a2d2b',border:'1px solid #1d6b61',color:'#c7f9ec',padding:'10px 12px',borderRadius:'10px',zIndex:50}); document.body.appendChild(d); setTimeout(()=>d.remove(),2000); }
 
-/********************
- * UI Skeleton
- ********************/
-const TABS = [
-  {id:'dashboard', label:'📊 Přehled'},
-  {id:'log', label:'📝 Záznamy'},
-  {id:'operators', label:'👥 Operátoři'},
-  {id:'settings', label:'⚙️ Nastavení'},
-  {id:'backup', label:'💾 Export/Import'}
-];
+/******************** UI Skeleton ********************/
+const ALL_TABS = [ {id:'dashboard', label:'📊 Přehled'}, {id:'log', label:'📝 Záznamy'}, {id:'operators', label:'👥 Operátoři'}, {id:'settings', label:'⚙️ Nastavení'}, {id:'backup', label:'💾 Export/Import'} ];
 let currentTab = 'dashboard';
-
 function renderTabs(){
-  const el = document.getElementById('tabs');
-  el.innerHTML = '';
-  TABS.forEach(t=>{
-    const b = document.createElement('button');
-    b.className = 'tab'+(t.id===currentTab?' active':'');
-    b.textContent = t.label;
-    b.onclick = ()=>{ currentTab=t.id; render(); };
-    el.appendChild(b);
-  })
+  const el = document.getElementById('tabs'); el.innerHTML = '';
+  const sess = getSession(); const isManager = sess.role==='manager';
+  const tabs = isManager? ALL_TABS : ALL_TABS.filter(t=>t.id==='dashboard');
+  tabs.forEach(t=>{ const b=document.createElement('button'); b.className='tab'+(t.id===currentTab?' active':''); b.textContent=t.label; b.onclick=()=>{ currentTab=t.id; render(); }; el.appendChild(b); });
 }
 
-function setMain(html){
-  const app = document.getElementById('app');
-  app.innerHTML = html;
+function setMain(html){ document.getElementById('app').innerHTML = html; }
+
+/******************** LOGIN ********************/
+function showLogin(){
+  const sel = document.getElementById('opPick'); sel.innerHTML = '<option value="">– Vyber operátora –</option>' + state.operators.map(o=>`<option value="${o.id}">${escapeHTML(o.name)}</option>`).join('');
+  document.getElementById('loginOverlay').style.display = 'flex';
+}
+function hideLogin(){ document.getElementById('loginOverlay').style.display = 'none'; }
+function wireLogin(){
+  const btnMgr = document.getElementById('btnRoleManager');
+  const btnOp  = document.getElementById('btnRoleOperator');
+  const mgrBox = document.getElementById('managerLogin');
+  const opBox  = document.getElementById('operatorLogin');
+  btnMgr.onclick = ()=>{ mgrBox.style.display='block'; opBox.style.display='none'; };
+  btnOp.onclick  = ()=>{ opBox.style.display='block'; mgrBox.style.display='none'; };
+  document.getElementById('managerForm').onsubmit = (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const name = fd.get('name');
+    const pass = fd.get('pass');
+    if(pass !== (state.security?.managerPassword||'VelimTomuTady2025')){ alert('Nesprávné heslo vedoucího.'); return; }
+    setSession({role:'manager', operatorId:null, managerName:name}); hideLogin();
+  };
+  document.getElementById('operatorForm').onsubmit = (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const operatorId = fd.get('operatorId');
+    const pin = (fd.get('pin')||'').trim();
+    if(!operatorId) return;
+    const op = state.operators.find(o=>o.id===operatorId);
+    if(!op){ alert('Operátor nenalezen.'); return; }
+    if((op.pin||'') !== pin){ alert('Nesprávný PIN.'); return; }
+    setSession({role:'operator', operatorId, managerName:null}); hideLogin();
+  };
 }
 
-/********************
- * DASHBOARD
- ********************/
+/******************** DASHBOARD ********************/
 function viewDashboard(){
   const {start,end,milestones} = state.contest;
   const totalsByOp = scoreByOperator();
   const totalPoints = sum(Object.values(totalsByOp));
   const totalLogs = state.logs.length;
   const appActivations = state.logs.filter(l=>l.activityId==='app_activation').length;
-
-  const top3 = Object.entries(totalsByOp)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5)
-    .map(([opId,pts],i)=>{
-      const op = state.operators.find(o=>o.id===opId) || {name:'(neznámý)'};
-      const pct = milestonePct(pts, milestones);
-      return `<tr>
-        <td>${i===0?'🥇':i===1?'🥈':i===2?'🥉':'⭐'}</td>
-        <td>${escapeHTML(op.name)}</td>
-        <td><div class="progress"><span style="width:${pct}%"></span></div></td>
-        <td style="text-align:right">${pts}</td>
-      </tr>`
-    }).join('');
-
-  const weeks = groupByWeek();
-  const lastWeekKey = Object.keys(weeks).sort().slice(-1)[0];
-  const lastWeek = weeks[lastWeekKey]||[];
-  const weekBoard = leaderboard(lastWeek);
+  const top5 = Object.entries(totalsByOp).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([opId,pts],i)=>{ const op = state.operators.find(o=>o.id===opId) || {name:'(neznámý)'}; const pct = milestonePct(pts, milestones); return `<tr><td>${i===0?'🥇':i===1?'🥈':i===2?'🥉':'⭐'}</td><td>${escapeHTML(op.name)}</td><td><div class="progress"><span style="width:${pct}%"></span></div></td><td style="text-align:right">${pts}</td></tr>` }).join('');
 
   setMain(`
     <div class="grid cols-3">
@@ -249,34 +212,19 @@ function viewDashboard(){
         <div class="kpi"><div class="v">${appActivations}</div><div class="l">Aktivací appky</div></div>
         <div class="mini">Období: <b>${start}</b> → <b>${end}</b></div>
       </section>
-
       <section class="card leaderboard">
         <h3>🌟 Celkové pořadí</h3>
-        <table>
-          <thead><tr><th></th><th>Operátor</th><th>Postup</th><th style="text-align:right">Body</th></tr></thead>
-          <tbody>${top3 || ''}</tbody>
-        </table>
+        <table><thead><tr><th></th><th>Operátor</th><th>Postup</th><th style="text-align:right">Body</th></tr></thead><tbody>${top5||''}</tbody></table>
       </section>
-
       <section class="card leaderboard">
-        <h3>⏱️ Týdenní hvězdy <span class="pill">${lastWeekKey||'—'}</span></h3>
-        ${renderLeaderboardTable(weekBoard)}
+        <h3>⏱️ Týdenní hvězdy <span class="pill">${latestWeekKey()||'—'}</span></h3>
+        ${renderLeaderboardTable(leaderboard(groupByWeek()[latestWeekKey()]||[]))}
       </section>
     </div>
 
     <section class="card" style="margin-top:16px">
       <h3>🗺️ Mapa milníků</h3>
-      ${state.operators.length? state.operators.map(op=>{
-        const pts = totalsByOp[op.id]||0;
-        const pct = milestonePct(pts, milestones);
-        const next = milestones.find(m=>pts<m.points);
-        const label = next? `${pts}/${next.points} → ${next.label}` : `${pts} – dosaženo ${milestones[milestones.length-1].label} 🌟`;
-        return `<div class="row" style="align-items:center; margin:10px 0">
-          <div style="min-width:180px">${escapeHTML(op.name)}</div>
-          <div class="progress" style="flex:1"><span style="width:${pct}%"></span></div>
-          <div class="mini" style="min-width:240px; text-align:right">${label}</div>
-        </div>`
-      }).join('') : '<div class="mini">Přidejte operátory v záložce <b>Operátoři</b>.</div>'}
+      ${state.operators.length? state.operators.map(op=>{ const pts = totalsByOp[op.id]||0; const pct = milestonePct(pts, milestones); const next = milestones.find(m=>pts<m.points); const label = next? `${pts}/${next.points} → ${next.label}` : `${pts} – dosaženo ${milestones[milestones.length-1].label} 🌟`; return `<div class="row" style="align-items:center; margin:10px 0"><div style="min-width:180px">${escapeHTML(op.name)}</div><div class="progress" style="flex:1"><span style="width:${pct}%"></span></div><div class="mini" style="min-width:240px; text-align:right">${label}</div></div>` }).join('') : '<div class="mini">Přidejte operátory v záložce <b>Operátoři</b>.</div>'}
     </section>
 
     <section class="card" style="margin-top:16px">
@@ -284,25 +232,29 @@ function viewDashboard(){
       ${quickAddForm()}
     </section>
   `);
-
-  // wire quick add
   wireQuickAdd();
 }
-
-function renderLeaderboardTable(board){
-  return `
-    <table>
-      <thead><tr><th>#</th><th>Operátor</th><th style="text-align:right">Body</th></tr></thead>
-      <tbody>
-      ${board.map((r,i)=>`<tr><td>${i<3?['🥇','🥈','🥉'][i]:'—'}</td><td>${escapeHTML(r.name)}</td><td style="text-align:right">${r.points}</td></tr>`).join('')}
-      </tbody>
-    </table>
-  `
-}
+function renderLeaderboardTable(board){ return `<table><thead><tr><th>#</th><th>Operátor</th><th style="text-align:right">Body</th></tr></thead><tbody>${board.map((r,i)=>`<tr><td>${i<3?['🥇','🥈','🥉'][i]:'—'}</td><td>${escapeHTML(r.name)}</td><td style="text-align:right">${r.points}</td></tr>`).join('')}</tbody></table>`; }
+function latestWeekKey(){ const weeks = Object.keys(groupByWeek()).sort(); return weeks[weeks.length-1]; }
 
 function quickAddForm(){
-  const opOpts = state.operators.map(o=>`<option value="${o.id}">${escapeHTML(o.name)}</option>`).join('');
+  const sess = getSession();
   const actOpts = state.activities.map(a=>`<option value="${a.id}" data-points="${a.points}">${escapeHTML(a.name)} (+${a.points})</option>`).join('');
+  if(sess.role==='operator'){
+    const me = state.operators.find(o=>o.id===sess.operatorId);
+    const label = me? me.name : '—';
+    return `
+      <form id="quick-add" class="row">
+        <span class="pill">Zapisovat pro: ${escapeHTML(label)}</span>
+        <input type="hidden" name="operatorId" value="${sess.operatorId||''}" />
+        <select name="activityId" required id="qa-activity"><option value="">– Aktivita –</option>${actOpts}</select>
+        <input name="points" id="qa-points" type="number" step="1" placeholder="Body (auto)" style="width:140px" />
+        <input name="date" type="date" value="${todayISO()}" />
+        <input name="note" type="text" placeholder="Poznámka (volitelné)" style="flex:1" />
+        <button class="btn-cta">Přidat</button>
+      </form>`;
+  }
+  const opOpts = state.operators.map(o=>`<option value="${o.id}">${escapeHTML(o.name)}</option>`).join('');
   return `
     <form id="quick-add" class="row">
       <select name="operatorId" required><option value="">– Operátor –</option>${opOpts}</select>
@@ -311,130 +263,33 @@ function quickAddForm(){
       <input name="date" type="date" value="${todayISO()}" />
       <input name="note" type="text" placeholder="Poznámka (volitelné)" style="flex:1" />
       <button class="btn-cta">Přidat</button>
-    </form>
-  `;
+    </form>`;
 }
-function wireQuickAdd(){
-  const f = document.getElementById('quick-add'); if(!f) return;
-  const actSel = document.getElementById('qa-activity');
-  const ptsInp = document.getElementById('qa-points');
-  actSel.onchange = ()=>{
-    const opt = actSel.options[actSel.selectedIndex];
-    ptsInp.value = opt?.dataset?.points || '';
-  }
-  f.onsubmit = (e)=>{
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(f).entries());
-    if(!data.operatorId || !data.activityId) return;
-    const pts = Number(data.points || state.activities.find(a=>a.id===data.activityId)?.points || 0);
-    state.logs.push({id:uid(), date:data.date||todayISO(), operatorId:data.operatorId, activityId:data.activityId, points:pts, note:data.note||''});
-    save(); render();
-  }
-}
+function wireQuickAdd(){ const f=document.getElementById('quick-add'); if(!f) return; const actSel=document.getElementById('qa-activity'); const ptsInp=document.getElementById('qa-points'); actSel.onchange=()=>{ const opt=actSel.options[actSel.selectedIndex]; ptsInp.value = opt?.dataset?.points || ''; }; f.onsubmit=(e)=>{ e.preventDefault(); const data=Object.fromEntries(new FormData(f).entries()); if(!data.operatorId || !data.activityId) return; const pts=Number(data.points || state.activities.find(a=>a.id===data.activityId)?.points || 0); state.logs.push({id:uid(), date:data.date||todayISO(), operatorId:data.operatorId, activityId:data.activityId, points:pts, note:data.note||''}); save(); render(); }; }
 
-/********************
- * LOGS
- ********************/
+/******************** LOGS ********************/
 function viewLog(){
-  const rows = state.logs
-    .slice().sort((a,b)=> new Date(b.date)-new Date(a.date))
-    .map(l=>{
-      const op = state.operators.find(o=>o.id===l.operatorId)?.name||'—';
-      const act = state.activities.find(a=>a.id===l.activityId)?.name||'—';
-      return `<tr>
-        <td>${l.date}</td>
-        <td>${escapeHTML(op)}</td>
-        <td>${escapeHTML(act)}</td>
-        <td style="text-align:right">${l.points}</td>
-        <td class="mini">${escapeHTML(l.note||'')}</td>
-        <td style="text-align:right"><button class="btn btn-danger" data-del="${l.id}">Smazat</button></td>
-      </tr>`
-    }).join('');
-
-  setMain(`
-    <section class="card">
-      <h3>📝 Záznamy aktivit</h3>
-      <div class="row" style="margin-bottom:10px">
-        <input id="filterStart" type="date" value="${state.contest.start}">
-        <input id="filterEnd" type="date" value="${state.contest.end}">
-        <button class="btn" id="btnFilter">Filtrovat</button>
-        <button class="btn" id="btnClear">Zrušit filtr</button>
-      </div>
-      <div class="leaderboard" style="overflow:auto; max-height:60vh">
-        <table>
-          <thead><tr><th>Datum</th><th>Operátor</th><th>Aktivita</th><th style="text-align:right">Body</th><th>Pozn.</th><th></th></tr></thead>
-          <tbody id="logBody">${rows}</tbody>
-        </table>
-      </div>
-    </section>
-  `);
-
-  document.querySelectorAll('[data-del]').forEach(b=> b.onclick = ()=>{ delLog(b.dataset.del); });
-  document.getElementById('btnFilter').onclick = ()=>{
-    const s = document.getElementById('filterStart').value;
-    const e = document.getElementById('filterEnd').value;
-    filterLogs(s,e);
-  };
-  document.getElementById('btnClear').onclick = ()=> render();
+  const rows = state.logs.slice().sort((a,b)=> new Date(b.date)-new Date(a.date)).map(l=>{ const op = state.operators.find(o=>o.id===l.operatorId)?.name||'—'; const act = state.activities.find(a=>a.id===l.activityId)?.name||'—'; return `<tr><td>${l.date}</td><td>${escapeHTML(op)}</td><td>${escapeHTML(act)}</td><td style="text-align:right">${l.points}</td><td class="mini">${escapeHTML(l.note||'')}</td><td style="text-align:right"><button class="btn btn-danger" data-del="${l.id}">Smazat</button></td></tr>` }).join('');
+  setMain(`<section class="card"><h3>📝 Záznamy aktivit</h3><div class="leaderboard" style="overflow:auto; max-height:60vh"><table><thead><tr><th>Datum</th><th>Operátor</th><th>Aktivita</th><th style="text-align:right">Body</th><th>Pozn.</th><th></th></tr></thead><tbody id="logBody">${rows}</tbody></table></div></section>`);
+  document.querySelectorAll('[data-del]').forEach(b=> b.onclick = ()=>{ state.logs = state.logs.filter(l=>l.id!==b.dataset.del); save(); render(); });
 }
 
-function filterLogs(start,end){
-  const body = document.getElementById('logBody');
-  body.innerHTML = state.logs.filter(l=>inRange(l.date,start,end)).sort((a,b)=>new Date(b.date)-new Date(a.date)).map(l=>{
-    const op = state.operators.find(o=>o.id===l.operatorId)?.name||'—';
-    const act = state.activities.find(a=>a.id===l.activityId)?.name||'—';
-    return `<tr>
-      <td>${l.date}</td>
-      <td>${escapeHTML(op)}</td>
-      <td>${escapeHTML(act)}</td>
-      <td style="text-align:right">${l.points}</td>
-      <td class="mini">${escapeHTML(l.note||'')}</td>
-      <td style="text-align:right"><button class="btn btn-danger" data-del="${l.id}">Smazat</button></td>
-    </tr>`
-  }).join('');
-  body.querySelectorAll('[data-del]').forEach(b=> b.onclick = ()=>{ delLog(b.dataset.del); });
-}
-
-function delLog(id){
-  state.logs = state.logs.filter(l=>l.id!==id);
-  save(); render();
-}
-
-/********************
- * OPERATORS
- ********************/
+/******************** OPERATORS ********************/
 function viewOperators(){
-  const list = state.operators.map(o=>{
-    const pts = scoreByOperator()[o.id]||0;
-    return `<tr>
-      <td>${escapeHTML(o.name)}</td>
-      <td class="mini">${escapeHTML(o.team||'')}</td>
-      <td style="text-align:right">${pts}</td>
-      <td style="text-align:right">
-        <button class="btn" data-edit="${o.id}">Upravit</button>
-        <button class="btn btn-danger" data-del="${o.id}">Smazat</button>
-      </td>
-    </tr>`
-  }).join('');
-
+  const list = state.operators.map(o=>{ const pts = scoreByOperator()[o.id]||0; return `<tr><td>${escapeHTML(o.name)}</td><td class="mini">${escapeHTML(o.team||'')}</td><td style="text-align:right">${pts}</td><td style="text-align:right"><button class="btn" data-edit="${o.id}">Upravit</button><button class="btn btn-danger" data-del="${o.id}">Smazat</button></td></tr>` }).join('');
   setMain(`
     <div class="grid cols-2">
       <section class="card">
         <h3>👥 Seznam operátorů</h3>
-        <div class="leaderboard" style="overflow:auto; max-height:60vh">
-          <table>
-            <thead><tr><th>Jméno</th><th>Tým</th><th style="text-align:right">Body</th><th></th></tr></thead>
-            <tbody>${list||''}</tbody>
-          </table>
-        </div>
+        <div class="leaderboard" style="overflow:auto; max-height:60vh"><table><thead><tr><th>Jméno</th><th>Tým</th><th style="text-align:right">Body</th><th></th></tr></thead><tbody>${list||''}</tbody></table></div>
       </section>
-
       <section class="card">
         <h3>➕ Přidat / Upravit</h3>
         <form id="opForm" class="row">
           <input type="hidden" name="id" />
           <input name="name" placeholder="Jméno a příjmení" required style="flex:1" />
           <input name="team" placeholder="Tým (volitelné)" />
+          <input name="pin" type="password" placeholder="PIN (4–8 číslic)" />
           <button class="btn-cta" style="min-width:140px">Uložit</button>
           <button type="button" class="btn" id="opCancel">Zrušit</button>
         </form>
@@ -443,378 +298,104 @@ function viewOperators(){
           <button class="btn" id="bulkBtn">Přidat hromadně</button>
         </details>
       </section>
-    </div>
-  `);
-
-  // Wire edit/delete
-  document.querySelectorAll('[data-edit]').forEach(b=> b.onclick = ()=>{
-    const o = state.operators.find(x=>x.id===b.dataset.edit);
-    const f = document.getElementById('opForm');
-    f.id.value = o.id; f.name.value = o.name; f.team.value = o.team||'';
-  });
-  document.querySelectorAll('[data-del]').forEach(b=> b.onclick = ()=>{
-    if(confirm('Smazat operátora? Záznamy zůstanou bez přiřazení.')){
-      state.operators = state.operators.filter(x=>x.id!==b.dataset.del);
-      save(); render();
-    }
-  });
-
-  const form = document.getElementById('opForm');
-  form.onsubmit = (e)=>{
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(form).entries());
-    if(data.id){
-      const i = state.operators.findIndex(o=>o.id===data.id);
-      if(i>-1){ state.operators[i].name=data.name; state.operators[i].team=data.team; }
-    } else {
-      state.operators.push({id:uid(), name:data.name, team:data.team});
-    }
-    save(); render();
-  };
+    </div>`);
+  document.querySelectorAll('[data-edit]').forEach(b=> b.onclick = ()=>{ const o = state.operators.find(x=>x.id===b.dataset.edit); const f = document.getElementById('opForm'); f.id.value = o.id; f.name.value = o.name; f.team.value = o.team||''; f.pin.value = o.pin||''; });
+  document.querySelectorAll('[data-del]').forEach(b=> b.onclick = ()=>{ if(confirm('Smazat operátora? Záznamy zůstanou bez přiřazení.')){ state.operators = state.operators.filter(x=>x.id!==b.dataset.del); save(); render(); } });
+  const form = document.getElementById('opForm'); form.onsubmit = (e)=>{ e.preventDefault(); const data = Object.fromEntries(new FormData(form).entries()); if(data.id){ const i=state.operators.findIndex(o=>o.id===data.id); if(i>-1){ state.operators[i].name=data.name; state.operators[i].team=data.team; state.operators[i].pin=(data.pin||''); } } else { state.operators.push({id:uid(), name:data.name, team:data.team, pin:(data.pin||'')}); } save(); render(); };
   document.getElementById('opCancel').onclick = ()=>{ form.reset(); };
-
-  document.getElementById('bulkBtn').onclick = ()=>{
-    const lines = document.getElementById('bulk').value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
-    lines.forEach(name=> state.operators.push({id:uid(), name}));
-    save(); render();
-  };
+  document.getElementById('bulkBtn').onclick = ()=>{ const lines = document.getElementById('bulk').value.split(/\n+/).map(s=>s.trim()).filter(Boolean); lines.forEach(name=> state.operators.push({id:uid(), name, pin:''})); save(); render(); };
 }
 
-/********************
- * SETTINGS
- ********************/
-function viewSettings(){
-  setMain(`
-    <div class="grid cols-2">
-      <section class="card">
-        <h3>⚙️ Obecné</h3>
-        <form id="contestForm" class="row">
-          <label>Start: <input type="date" name="start" value="${state.contest.start}"></label>
-          <label>Konec: <input type="date" name="end" value="${state.contest.end}"></label>
-          <input name="name" placeholder="Název soutěže" value="${escapeAttr(state.contest.name)}" style="flex:1">
-          <button class="btn-cta">Uložit</button>
-        </form>
-        <details style="margin-top:8px"><summary>🎯 Milníky</summary>
-          <div id="milestones">${state.contest.milestones.map((m,i)=>milestoneRow(m,i)).join('')}</div>
-          <div class="row" style="margin-top:8px">
-            <button class="btn" id="addMilestone">+ Milník</button>
-            <button class="btn" id="saveMilestones">Uložit milníky</button>
-          </div>
-        </details>
-      </section>
-
-      <section class="card">
-        <h3>🏷️ Aktivity a body</h3>
-        <div id="activities">${state.activities.map(a=>activityRow(a)).join('')}</div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn" id="addActivity">+ Aktivita</button>
-          <button class="btn" id="saveActivities">Uložit aktivity</button>
-        </div>
-      </section>
-
-      <section class="card" style="grid-column:1 / -1">
-        <h3>🧯 Údržba</h3>
-        <div class="row">
-          <button class="btn btn-accent" id="demoSeed">Naplnit ukázkovými daty</button>
-          <button class="btn btn-danger" id="resetAll">Smazat vše</button>
-        </div>
-        <div class="mini" style="margin-top:6px">Pozn.: vše běží offline v prohlížeči (LocalStorage).</div>
-      </section>
-    </div>
-  `);
-
-  // Wire general form
-  const cf = document.getElementById('contestForm');
-  cf.onsubmit = (e)=>{ e.preventDefault(); const d = Object.fromEntries(new FormData(cf).entries()); state.contest.start=d.start; state.contest.end=d.end; state.contest.name=d.name; save(); flash('Uloženo.'); };
-
-  document.getElementById('addMilestone').onclick = ()=>{
-    state.contest.milestones.push({points:0,label:''});
-    save(); viewSettings();
-  };
-  document.getElementById('saveMilestones').onclick = ()=>{
-    const rows = [...document.querySelectorAll('[data-milestone]')].map(r=>({
-      points:Number(r.querySelector('[name=points]').value||0),
-      label:r.querySelector('[name=label]').value||''
-    }));
-    state.contest.milestones = rows.sort((a,b)=>a.points-b.points);
-    save(); flash('Milníky uloženy.');
-  };
-
-  document.getElementById('addActivity').onclick = ()=>{
-    state.activities.push({id:uid(), name:'Nová aktivita', points:0, category:''});
-    save(); viewSettings();
-  };
-  document.getElementById('saveActivities').onclick = ()=>{
-    const rows = [...document.querySelectorAll('[data-activity]')].map(r=>({
-      id:r.dataset.id||uid(),
-      name:r.querySelector('[name=name]').value||'',
-      points:Number(r.querySelector('[name=points]').value||0),
-      category:r.querySelector('[name=category]').value||''
-    }));
-    state.activities = rows;
-    save(); flash('Aktivity uloženy.');
-  };
-
-  document.getElementById('demoSeed').onclick = ()=>{ seedDemo(); };
-  document.getElementById('resetAll').onclick = resetAll;
+/******************** SETTINGS ********************/
+function viewSettings(){ setMain(`
+  <div class="grid cols-2">
+    <section class="card"><h3>⚙️ Obecné</h3>
+      <form id="contestForm" class="row">
+        <label>Start: <input type="date" name="start" value="${state.contest.start}"></label>
+        <label>Konec: <input type="date" name="end" value="${state.contest.end}"></label>
+        <input name="name" placeholder="Název soutěže" value="${escapeAttr(state.contest.name)}" style="flex:1">
+        <button class="btn-cta">Uložit</button>
+      </form>
+      <details style="margin-top:8px"><summary>🎯 Milníky</summary>
+        <div id="milestones">${state.contest.milestones.map((m,i)=>milestoneRow(m,i)).join('')}</div>
+        <div class="row" style="margin-top:8px"><button class="btn" id="addMilestone">+ Milník</button><button class="btn" id="saveMilestones">Uložit milníky</button></div>
+      </details>
+    </section>
+    <section class="card"><h3>🏷️ Aktivity a body</h3>
+      <div id="activities">${state.activities.map(a=>activityRow(a)).join('')}</div>
+      <div class="row" style="margin-top:8px"><button class="btn" id="addActivity">+ Aktivita</button><button class="btn" id="saveActivities">Uložit aktivity</button></div>
+    </section>
+    <section class="card"><h3>🔒 Zabezpečení</h3>
+      <form id="secForm" class="row">
+        <input type="password" name="managerPassword" placeholder="Nové heslo vedoucího" style="flex:1"/>
+        <button class="btn">Uložit heslo</button>
+      </form>
+      <div class="mini">Výchozí heslo je <code>VelimTomuTady2025</code>. Změna se uloží lokálně.</div>
+    </section>
+    <section class="card" style="grid-column:1 / -1"><h3>🧯 Údržba</h3>
+      <div class="row"><button class="btn" id="demoSeed">Naplnit ukázkovými daty</button><button class="btn btn-danger" id="resetAll">Smazat vše</button></div>
+      <div class="mini" style="margin-top:6px">Pozn.: vše běží offline v prohlížeči (LocalStorage).</div>
+    </section>
+  </div>`);
+  const cf = document.getElementById('contestForm'); cf.onsubmit = (e)=>{ e.preventDefault(); const d=Object.fromEntries(new FormData(cf).entries()); state.contest.start=d.start; state.contest.end=d.end; state.contest.name=d.name; save(); flash('Uloženo.'); };
+  document.getElementById('addMilestone').onclick = ()=>{ state.contest.milestones.push({points:0,label:''}); save(); viewSettings(); };
+  document.getElementById('saveMilestones').onclick = ()=>{ const rows=[...document.querySelectorAll('[data-milestone]')].map(r=>({points:Number(r.querySelector('[name=points]').value||0), label:r.querySelector('[name=label]').value||''})); state.contest.milestones = rows.sort((a,b)=>a.points-b.points); save(); flash('Milníky uloženy.'); };
+  document.getElementById('addActivity').onclick = ()=>{ state.activities.push({id:uid(), name:'Nová aktivita', points:0, category:''}); save(); viewSettings(); };
+  document.getElementById('saveActivities').onclick = ()=>{ const rows=[...document.querySelectorAll('[data-activity]')].map(r=>({id:r.dataset.id||uid(), name:r.querySelector('[name=name]').value||'', points:Number(r.querySelector('[name=points]').value||0), category:r.querySelector('[name=category]').value||''})); state.activities = rows; save(); flash('Aktivity uloženy.'); };
+  document.getElementById('demoSeed').onclick = seedDemo; document.getElementById('resetAll').onclick = resetAll; const sf=document.getElementById('secForm'); sf.onsubmit=(e)=>{ e.preventDefault(); const np = (new FormData(sf).get('managerPassword')||'').trim(); if(!np){ alert('Zadejte nové heslo.'); return; } state.security.managerPassword=np; save(); flash('Heslo změněno.'); sf.reset(); }
 }
-
-function milestoneRow(m,i){
-  return `<div class="row" data-milestone>
-    <input name="points" type="number" value="${m.points}" style="width:120px" />
-    <input name="label" value="${escapeAttr(m.label)}" style="flex:1" />
-    <button class="btn btn-danger" onclick="removeMilestone(${i})">Smazat</button>
-  </div>`
-}
+function milestoneRow(m,i){ return `<div class="row" data-milestone><input name="points" type="number" value="${m.points}" style="width:120px" /><input name="label" value="${escapeAttr(m.label)}" style="flex:1" /><button class="btn btn-danger" onclick="removeMilestone(${i})">Smazat</button></div>` }
 function removeMilestone(i){ state.contest.milestones.splice(i,1); save(); viewSettings(); }
-
-function activityRow(a){
-  return `<div class="row" data-activity data-id="${a.id}">
-    <input name="name" value="${escapeAttr(a.name)}" style="flex:1" />
-    <input name="points" type="number" value="${a.points}" style="width:120px" />
-    <input name="category" value="${escapeAttr(a.category||'')}" placeholder="Kategorie" style="width:180px" />
-    <button class="btn btn-danger" onclick="removeActivity('${a.id}')">Smazat</button>
-  </div>`
-}
+function activityRow(a){ return `<div class="row" data-activity data-id="${a.id}"><input name="name" value="${escapeAttr(a.name)}" style="flex:1" /><input name="points" type="number" value="${a.points}" style="width:120px" /><input name="category" value="${escapeAttr(a.category||'')}" placeholder="Kategorie" style="width:180px" /><button class="btn btn-danger" onclick="removeActivity('${a.id}')">Smazat</button></div>` }
 function removeActivity(id){ state.activities = state.activities.filter(a=>a.id!==id); save(); viewSettings(); }
 
-/********************
- * BACKUP (Export/Import)
- ********************/
-function viewBackup(){
-  setMain(`
-    <section class="card">
-      <h3>💾 Export / Import</h3>
-      <div class="row" style="margin-bottom:10px">
-        <button class="btn-cta" id="exportBtn">Exportovat JSON</button>
-        <input type="file" id="importFile" accept="application/json" />
-        <button class="btn" id="importBtn">Importovat</button>
-      </div>
-      <textarea id="jsonArea" rows="12" style="width:100%" placeholder="Nebo vložte JSON ručně a klikněte na Importovat…">${escapeHTML(JSON.stringify(state, null, 2))}</textarea>
-      <div class="mini" style="margin-top:6px">Export vytvoří soubor s aktuálním stavem. Import přepíše aktuální data.</div>
-    </section>
-  `);
-
-  document.getElementById('exportBtn').onclick = ()=>{
-    const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `santa_app_challenge_${todayISO()}.json`;
-    a.click();
-  };
-
-  document.getElementById('importBtn').onclick = ()=>{
-    const file = document.getElementById('importFile').files[0];
-    if(file){
-      const fr = new FileReader();
-      fr.onload = ()=>{ try{ state = JSON.parse(fr.result); save(); render(); }catch(e){ alert('Neplatný JSON.'); } };
-      fr.readAsText(file);
-    } else {
-      const txt = document.getElementById('jsonArea').value;
-      try{ state = JSON.parse(txt); save(); render(); }catch(e){ alert('Neplatný JSON.'); }
-    }
-  };
+/******************** BACKUP ********************/
+function viewBackup(){ setMain(`<section class="card"><h3>💾 Export / Import</h3><div class="row" style="margin-bottom:10px"><button class="btn-cta" id="exportBtn">Exportovat JSON</button><input type="file" id="importFile" accept="application/json" /><button class="btn" id="importBtn">Importovat</button></div><textarea id="jsonArea" rows="12" style="width:100%" placeholder="Nebo vložte JSON ručně a klikněte na Importovat…">${escapeHTML(JSON.stringify(state, null, 2))}</textarea><div class="mini" style="margin-top:6px">Export vytvoří soubor s aktuálním stavem. Import přepíše aktuální data.</div></section>`);
+  document.getElementById('exportBtn').onclick = ()=>{ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`santa_app_challenge_${todayISO()}.json`; a.click(); };
+  document.getElementById('importBtn').onclick = ()=>{ const file=document.getElementById('importFile').files[0]; if(file){ const fr=new FileReader(); fr.onload=()=>{ try{ state=JSON.parse(fr.result); save(); render(); }catch(e){ alert('Neplatný JSON.'); } }; fr.readAsText(file); } else { const txt=document.getElementById('jsonArea').value; try{ state=JSON.parse(txt); save(); render(); }catch(e){ alert('Neplatný JSON.'); } } };
 }
 
-/********************
- * Výpočty
- ********************/
-function scoreByOperator(){
-  const map={};
-  state.logs.forEach(l=>{ map[l.operatorId]=(map[l.operatorId]||0)+Number(l.points||0); });
-  return map;
-}
-function milestonePct(pts, milestones){
-  if(!milestones.length) return 0;
-  const max = milestones[milestones.length-1].points||1;
-  return Math.max(0, Math.min(100, Math.round(pts/max*100)));
-}
-function groupByWeek(){
-  const g={};
-  state.logs.forEach(l=>{ const k=weekKey(l.date); (g[k]=g[k]||[]).push(l); });
-  return g;
-}
-function leaderboard(logs){
-  const map={};
-  logs.forEach(l=>{ const name = state.operators.find(o=>o.id===l.operatorId)?.name||'(neznámý)'; map[name]=(map[name]||0)+Number(l.points||0); });
-  return Object.entries(map).map(([name,points])=>({name,points})).sort((a,b)=>b.points-a.points);
-}
+/******************** Výpočty ********************/
+function scoreByOperator(){ const map={}; state.logs.forEach(l=>{ map[l.operatorId]=(map[l.operatorId]||0)+Number(l.points||0); }); return map; }
+function milestonePct(pts, milestones){ if(!milestones.length) return 0; const max = milestones[milestones.length-1].points||1; return Math.max(0, Math.min(100, Math.round(pts/max*100))); }
+function groupByWeek(){ const g={}; state.logs.forEach(l=>{ const k=weekKey(l.date); (g[k]=g[k]||[]).push(l); }); return g; }
+function leaderboard(logs){ const map={}; logs.forEach(l=>{ const name = state.operators.find(o=>o.id===l.operatorId)?.name||'(neznámý)'; map[name]=(map[name]||0)+Number(l.points||0); }); return Object.entries(map).map(([name,points])=>({name,points})).sort((a,b)=>b.points-a.points); }
 
-/********************
- * Pomocné UI
- ********************/
-function flash(msg){
-  const d=document.createElement('div');
-  d.textContent = msg; d.style.position='fixed'; d.style.right='16px'; d.style.bottom='16px'; d.style.background='#0a2d2b'; d.style.border='1px solid #1d6b61'; d.style.color='#c7f9ec'; d.style.padding='10px 12px'; d.style.borderRadius='10px'; d.style.zIndex='50';
-  document.body.appendChild(d); setTimeout(()=>d.remove(),2000);
-}
-function escapeHTML(s){ return (s||'').toString().replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
-function escapeAttr(s){ return escapeHTML(s).replace(/\n/g,' '); }
+/******************** Sníh (dekorace) ********************/
+(function snow(){ const c=document.getElementById('snow'); const ctx=c.getContext('2d'); let w,h,flakes=[]; function resize(){ w=c.width=innerWidth; h=c.height=innerHeight; flakes=Array.from({length: Math.min(200, Math.floor(w/8))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.8+0.4, s:Math.random()*0.6+0.2})) } window.addEventListener('resize', resize); resize(); (function loop(){ ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(255,255,255,0.8)'; flakes.forEach(f=>{ ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fill(); f.y+=f.s; f.x+=Math.sin(f.y*0.01)*0.2; if(f.y>h) f.y=-5; }); requestAnimationFrame(loop); })(); })();
 
-/********************
- * Sníh (dekorace)
- ********************/
-(function snow(){
-  const c = document.getElementById('snow'); const ctx=c.getContext('2d');
-  let w,h,flakes=[]; function resize(){ w= c.width = innerWidth; h = c.height = innerHeight; flakes = Array.from({length: Math.min(200, Math.floor(w/8))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.8+0.4, s:Math.random()*0.6+0.2})) }
-  window.addEventListener('resize', resize); resize();
-  (function loop(){ ctx.clearRect(0,0,w,h); ctx.fillStyle='rgba(255,255,255,0.8)'; flakes.forEach(f=>{ ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fill(); f.y += f.s; f.x += Math.sin(f.y*0.01)*0.2; if(f.y>h) f.y=-5; }); requestAnimationFrame(loop); })();
-})();
-
-/********************
- * Router & init
- ********************/
+/******************** Router & init ********************/
 function render(){
+  const sess = getSession();
+  // Session badge + logout
+  const sb = document.getElementById('sessionBox');
+  if(sess.role==='manager'){ sb.innerHTML = `👤 Vedoucí: <b>${escapeHTML(sess.managerName||'—')}</b> · <button class="btn" id="btnLogout">Odhlásit</button>`; }
+  else if(sess.role==='operator'){ const me = state.operators.find(o=>o.id===sess.operatorId); sb.innerHTML = `👤 Operátor: <b>${escapeHTML(me?me.name:'—')}</b> · <button class="btn" id="btnLogout">Odhlásit</button>`; }
+  else { sb.innerHTML = `<button class="btn-cta" id="btnLogin">Přihlásit</button>`; }
+
+  document.getElementById('btnLogout')?.addEventListener('click', ()=>{ clearSession(); });
+  document.getElementById('btnLogin')?.addEventListener('click', ()=> showLogin());
+
+  // Tabs (hide for operator)
   renderTabs();
+
+  // Guard: if not logged in show login overlay and render dashboard skeleton
+  if(!sess.role){ showLogin(); setMain('<section class="card"><h3>Vítej!</h3><div class="mini">Pro pokračování se přihlas jako Vedoucí nebo Operátor.</div></section>'); return; }
+
+  // Route
   if(currentTab==='dashboard') viewDashboard();
-  if(currentTab==='log') viewLog();
-  if(currentTab==='operators') viewOperators();
-  if(currentTab==='settings') viewSettings();
-  if(currentTab==='backup') viewBackup();
+  if(currentTab==='log'){ if(sess.role==='manager') viewLog(); else { setMain(`<section class="card"><h3>⚠️ Přístup zamítnut</h3><div class="mini">Tato část je pouze pro vedoucí.</div></section>`);} }
+  if(currentTab==='operators'){ if(sess.role==='manager') viewOperators(); else { setMain(`<section class="card"><h3>⚠️ Přístup zamítnut</h3><div class="mini">Tato část je pouze pro vedoucí.</div></section>`);} }
+  if(currentTab==='settings'){ if(sess.role==='manager') viewSettings(); else { setMain(`<section class="card"><h3>⚠️ Přístup zamítnut</h3><div class="mini">Tato část je pouze pro vedoucí.</div></section>`);} }
+  if(currentTab==='backup'){ if(sess.role==='manager') viewBackup(); else { setMain(`<section class="card"><h3>⚠️ Přístup zamítnut</h3><div class="mini">Tato část je pouze pro vedoucí.</div></section>`);} }
 }
 
-/********************
- * Ukázková data
- ********************/
-function seedDemo(){
-  if(!confirm('Přepsat aktuální data ukázkou?')) return;
-  const names = ['Jana Nováková','Petr Dvořák','Lucie Svobodová','Jiří Král','Barbora Malá','Tomáš Horák'];
-  state.operators = names.map(n=>({id:uid(), name:n, team:['A','B'][Math.floor(Math.random()*2)]}));
-  state.logs = [];
-  const acts = state.activities;
-  for(let i=0;i<120;i++){
-    const op = state.operators[Math.floor(Math.random()*state.operators.length)];
-    const a = acts[Math.floor(Math.random()*acts.length)];
-    const day = new Date(state.contest.start);
-    day.setDate(day.getDate()+Math.floor(Math.random()*35));
-    state.logs.push({id:uid(), date:day.toISOString().slice(0,10), operatorId:op.id, activityId:a.id, points:a.points, note:''});
-  }
-  save(); render(); flash('Ukázková data nahrána.');
-}
+/******************** Ukázková data ********************/
+function seedDemo(){ if(!confirm('Přepsat aktuální data ukázkou?')) return; const names=['Jana Nováková','Petr Dvořák','Lucie Svobodová','Jiří Král','Barbora Malá','Tomáš Horák']; state.operators = names.map(n=>({id:uid(), name:n, team:['A','B'][Math.floor(Math.random()*2)], pin:String(Math.floor(1000+Math.random()*9000))})); state.logs=[]; const acts=state.activities; for(let i=0;i<120;i++){ const op=state.operators[Math.floor(Math.random()*state.operators.length)]; const a=acts[Math.floor(Math.random()*acts.length)]; const day=new Date(state.contest.start); day.setDate(day.getDate()+Math.floor(Math.random()*35)); state.logs.push({id:uid(), date:day.toISOString().slice(0,10), operatorId:op.id, activityId:a.id, points:a.points, note:''}); } save(); render(); flash('Ukázková data nahrána.'); }
 
-// Start app
+// Start
+wireLogin();
 render();
 </script>
-
-
-<!-- 🔌 Firebase SDK + integrace do aplikace -->
-<script type="module">
-  // 1) Načtení Firebase modulů z CDN
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, getDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  // 2) 🧩 Sem vložte svůj Firebase config z konzole (nahraďte hodnoty v objektu):
-  const firebaseConfig = {
-  apiKey: "AIzaSyB3rsUPwZrAhSIUhNP5st0NnIoBR9nlpZE",
-  authDomain: "santa-challenge.firebaseapp.com",
-  projectId: "santa-challenge",
-  storageBucket: "santa-challenge.firebasestorage.app",
-  messagingSenderId: "499140073635",
-  appId: "1:499140073635:web:6c82ed4fb5795b36174716"
-};
-
-  // 3) Inicializace a zveřejnění kontextu
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  window.firebaseCtx = { app, auth, db };
-
-  // 4) UI prvky přihlášení
-  const authState = document.getElementById('authState');
-  const loginForm = document.getElementById('loginForm');
-  const logoutBtn = document.getElementById('logoutBtn');
-
-  async function loadCollectionSafe(name){
-    try{ const snap = await getDocs(collection(db, name));
-      return snap.docs.map(d=>({ id:d.id, ...d.data() }));
-    }catch(e){ console.warn('loadCollectionSafe', name, e); return []; }
-  }
-
-  // 5) Napojení na existující aplikaci – přepsání zdrojů dat na Firestore (pokud je uživatel přihlášen)
-  async function syncFromCloud(){
-    // Načti logy (pro žebříček) a případně konfiguraci, pokud existuje v DB
-    const logs = await loadCollectionSafe('logs');
-    if(Array.isArray(logs) && logs.length){
-      // přepiš lokální logy daty z cloudu
-      window.state.logs = logs.map(l=>({ id:l.id, date:l.date, operatorId:l.operatorId, activityId:l.activityId, points:l.points, note:l.note||'' }));
-    }
-    const acts = await loadCollectionSafe('activities');
-    if(acts.length){ window.state.activities = acts.map(a=>({ id:a.id||a.uid||a.name, name:a.name, points:Number(a.points)||0, category:a.category||'' })); }
-    const ops = await loadCollectionSafe('operators');
-    if(ops.length){ window.state.operators = ops.map(o=>({ id:o.id||o.uid||o.name, name:o.name, team:o.team||'' })); }
-    // contest config (single doc):/contest/config
-    try{ const cfg = await getDoc(doc(db,'contest','config')); if(cfg.exists()){
-      const c = cfg.data();
-      window.state.contest.name = c.name || window.state.contest.name;
-      window.state.contest.start = c.start || window.state.contest.start;
-      window.state.contest.end   = c.end   || window.state.contest.end;
-      if(Array.isArray(c.milestones)) window.state.contest.milestones = c.milestones;
-    }}catch(e){ /* ignore */ }
-
-    // přerenderuj UI s daty z cloudu
-    window.render && window.render();
-  }
-
-  // 6) Uložení nového logu do Firestore a zákaz lokálního ukládání, když je přihlášen
-  async function addLogToCloud(data){
-    if(!auth.currentUser){ alert('Nejprve se přihlas.'); return; }
-    const payload = {
-      date: data.date,
-      operatorId: data.operatorId,
-      activityId: data.activityId,
-      points: Number(data.points||0),
-      note: data.note||'',
-      authorUid: auth.currentUser.uid,
-      createdAt: new Date().toISOString()
-    };
-    await addDoc(collection(db,'logs'), payload);
-  }
-
-  // 7) Převzetí formuláře „Rychlý záznam“ a změna chování podle auth stavu
-  function wireCloudOverrides(){
-    const form = document.getElementById('quick-add');
-    if(form){
-      form.onsubmit = async (e)=>{
-        e.preventDefault();
-        const data = Object.fromEntries(new FormData(form).entries());
-        if(!auth.currentUser){ alert('Nejprve se přihlas.'); return; }
-        await addLogToCloud(data);
-        form.reset();
-        // Po přidání načti čerstvá data
-        await syncFromCloud();
-        window.flash && window.flash('Zapsáno do Firestore.');
-      };
-    }
-  }
-
-  // 8) Přihlášení/odhlášení
-  if(loginForm){
-    loginForm.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const { email, password } = Object.fromEntries(new FormData(loginForm).entries());
-      try{ await signInWithEmailAndPassword(auth, email, password); loginForm.reset(); }
-      catch(err){ alert('Přihlášení se nepodařilo: '+(err?.message||err)); }
-    });
-  }
-  if(logoutBtn){ logoutBtn.addEventListener('click', ()=> signOut(auth)); }
-
-  // 9) Reakce na změnu přihlášení – úprava UI a načtení dat
-  onAuthStateChanged(auth, async (user)=>{
-    const loginVisible = document.getElementById('loginForm');
-    if(user){
-      authState.textContent = `Přihlášen: ${user.email}`;
-      logoutBtn.style.display = 'inline-flex';
-      if(loginVisible) loginVisible.style.display = 'none';
-      await syncFromCloud();
-      wireCloudOverrides();
-    } else {
-      authState.textContent = 'Nepřihlášen';
-      logoutBtn.style.display = 'none';
-      if(loginVisible) loginVisible.style.display = 'flex';
-    }
-  });
-</script>
-
 </body>
 </html>
