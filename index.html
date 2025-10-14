@@ -24,7 +24,7 @@
     html,body{height:100%;}
     body{margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; background:var(--bg); color:var(--text);} 
     .app-wrap{min-height:100%; display:grid; grid-template-rows:auto 1fr auto;}
-    header{position:relative; z-index:2; display:flex; align-items:center; gap:.75rem; justify-content:space-between; padding:12px 16px; background:linear-gradient(180deg, rgba(0,0,0,.25), transparent), var(--bg-soft); box-shadow:var(--shadow);} 
+    header{position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:.75rem; justify-content:space-between; padding:12px 16px; background:linear-gradient(180deg, rgba(0,0,0,.25), transparent), var(--bg-soft); box-shadow:var(--shadow);}  
     header .brand{display:flex; align-items:center; gap:.75rem;}
     .brand .logo{width:36px; height:36px; border-radius:10px; background: var(--xmas-grad); box-shadow:0 6px 20px rgba(230,69,100,.35);} 
     .brand h1{font-size:1.05rem; margin:0; letter-spacing:.3px}
@@ -47,11 +47,12 @@
     .progress{height:14px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.08)); border-radius:999px; position:relative; overflow:hidden;}
     .progress .bar{height:100%; width:0%; background:var(--xmas-grad); transition:width .7s ease}
 
-    .leaderboard-item{display:grid; grid-template-columns: 52px 1fr auto; gap:12px; align-items:center}
-    .avatar{width:52px; height:52px; border-radius:15px; background: var(--xmas-grad); display:grid; place-items:center; font-weight:800; color:white}
+    .leaderboard-item{display:grid; grid-template-columns: 36px 52px 1fr auto; gap:12px; align-items:center} .medal-big{font-size:1.6rem; line-height:1;}
+    .avatar{width:52px; height:52px; border-radius:15px; background: var(--xmas-grad); display:grid; place-items:center; font-weight:800; color:white; overflow:hidden}
+    .avatar img{width:100%; height:100%; object-fit:cover; display:block}
     .medal{font-size:1.25rem}
 
-    .badge{display:inline-block; margin-left:.5rem; padding:.15rem .5rem; font-size:.75rem; border-radius:999px; background:var(--xmas-grad); color:#fff; box-shadow:var(--shadow)}
+    .pill{display:inline-block; margin-left:.5rem; padding:.15rem .5rem; font-size:.75rem; border-radius:999px; background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.28)}
 
     .tabs{display:flex; gap:6px; flex-wrap:wrap}
     .tab{padding:.55rem .8rem; border-radius:12px; background:transparent; border:1px solid rgba(255,255,255,.15); cursor:pointer}
@@ -90,7 +91,8 @@
       </div>
       <nav>
         <button class="btn small" id="mapBtn" title="Mapa">🗺️ Mapa</button>
-        <button class="btn small" id="milestonesBtn" title="Milníky">🏆 Milníky</button>
+        <button class="btn small" id="milestonesBtn" title="Hodnosti">🏆 Hodnosti</button>
+        <button class="btn small" id="avatarBtn" title="Zvolit profilový obrázek">🖼️ Avatar</button>
         <button class="btn small" id="themeToggle" title="Přepnout téma">🌓 Téma</button>
         <button class="btn small ghost" id="signOutBtn" title="Odhlásit">Odhlásit</button>
       </nav>
@@ -153,7 +155,7 @@
       <section id="managerSection" class="hidden">
         <div class="tabs" role="tablist">
           <button class="tab active" data-tab="cfg-activities">Aktivity</button>
-          <button class="tab" data-tab="cfg-milestones">Milníky</button>
+          <button class="tab" data-tab="cfg-milestones">Hodnosti</button>
           <button class="tab" data-tab="cfg-roles">Operátoři</button>
           <button class="tab" data-tab="cfg-utils">Nástroje</button>
         </div>
@@ -175,7 +177,7 @@
         </div>
 
         <div id="cfg-milestones" class="card tabpanel hidden">
-          <h2>Milníky</h2>
+          <h2>Hodnosti</h2>
           <div class="row" style="flex-wrap:wrap; gap:8px">
             <input id="msThreshold" class="input" type="number" placeholder="Počet dárků"/>
             <input id="msLabel" class="input" placeholder="Označení (badge)"/>
@@ -183,7 +185,7 @@
             <label class="row" style="gap:6px"><input type="checkbox" id="msVisible" checked /> Viditelný</label>
             <button class="btn" id="addMilestone">Přidat milník</button>
           </div>
-          <div class="muted">Tip: Milník můžete níže upravit (práh, název, výhra) a přepínat viditelnost.</div>
+          <div class="muted">Tip: Hodnost můžete níže upravit (práh, název, výhra) a přepínat viditelnost.</div>
           <div id="milestonesList" class="stack" style="margin-top:8px"></div>
         </div>
 
@@ -225,7 +227,25 @@
       <!-- Milestones modal -->
       <section id="milestonesModal" class="card hidden" style="position:fixed; right:16px; top:64px; z-index:10; max-width:420px">
         <div class="row" style="justify-content:space-between; align-items:center">
-          <h2 style="margin:0">Milníky</h2>
+          <h2 style="margin:0">Hodnosti</h2>
+          <button class="btn small ghost" id="closeMilestonesModal">Zavřít</button>
+        </div>
+        <div id="milestonesPublicList" class="stack"></div>
+      </section>
+      <!-- Avatar modal -->
+      <section id="avatarModal" class="card hidden" style="position:fixed; right:16px; top:64px; z-index:30; max-width:520px">
+        <div class="row" style="justify-content:space-between; align-items:center">
+          <h2 style="margin:0">Vyber profilový obrázek</h2>
+          <button class="btn small ghost" id="closeAvatarModal">Zavřít</button>
+        </div>
+        <div class="muted">Pokud žádný nevybereš, bude se zobrazovat ikona s iniciálami s vlastní barvou.</div>
+        <div id="avatarGrid" class="row" style="flex-wrap:wrap; gap:10px; margin-top:10px"></div>
+      </section>
+
+      <!-- Milestones modal -->
+      <section id="milestonesModal" class="card hidden" style="position:fixed; right:16px; top:64px; z-index:10; max-width:420px">
+        <div class="row" style="justify-content:space-between; align-items:center">
+          <h2 style="margin:0">Hodnosti</h2>
           <button class="btn small ghost" id="closeMilestonesModal">Zavřít</button>
         </div>
         <div id="milestonesPublicList" class="stack"></div>
@@ -290,6 +310,10 @@
     const closeMilestonesModal = document.getElementById('closeMilestonesModal');
     const mapBtn = document.getElementById('mapBtn');
     const milestonesBtn = document.getElementById('milestonesBtn');
+    const avatarBtn = document.getElementById('avatarBtn');
+    const avatarModal = document.getElementById('avatarModal');
+    const closeAvatarModal = document.getElementById('closeAvatarModal');
+    const avatarGrid = document.getElementById('avatarGrid');
     const leaderboard = document.getElementById('leaderboard');
 
     // Manager UI
@@ -336,6 +360,7 @@
       operator_tel_kore: 'Operátor – půlení (tel + kore)',
       operator_kore: 'Operátor – korespondence'
     };
+    const OPERATOR_ROLES = new Set(['operator_tel','operator_kore','operator_tel_kore']);
     function allowedCategoriesFor(role){
       if(role==='operator_tel') return ['tel_weekly'];
       if(role==='operator_kore') return ['kore_static'];
@@ -593,12 +618,12 @@
         milestonesPublicList.innerHTML='';
         const items = []; snap.forEach(d=>items.push({id:d.id, visible: d.data().visible!==false, reward: d.data().reward||'', ...d.data()}));
         const visibleItems = items.filter(i=> i.visible!==false);
-        milestoneLegend.textContent = visibleItems.length ? `Milníky: ${visibleItems.map(i=>i.threshold+ ' – '+ i.label).join(' • ')}` : 'Milníky zatím nejsou nastavené';
+        milestoneLegend.textContent = visibleItems.length ? `Hodnosti: ${visibleItems.map(i=>i.threshold+ ' – '+ i.label).join(' • ')}` : 'Hodnosti zatím nejsou nastavené';
 
         // Public list in modal (visible only)
         visibleItems.forEach(m=>{
           const c = document.createElement('div'); c.className='card';
-          c.innerHTML = `<div class="row" style="justify-content:space-between"><div><b>${m.threshold}</b> bodů – ${m.label}${m.reward? ` <span class=\"badge\" title=\"Výhra\">${m.reward}</span>`:''}</div></div>`;
+          c.innerHTML = `<div class="row" style="justify-content:space-between"><div><b>${m.threshold}</b> bodů – ${m.label}${m.reward? ` <span class="pill" title=\"Výhra\">${m.reward}</span>`:''}</div></div>`;
           milestonesPublicList.appendChild(c);
         });
 
@@ -642,10 +667,12 @@
     // === Roles / Operators (manager) ===
     async function buildUsersForManager(){
       if(currentRole!=="manager") return;
-      const ops = await getDocs(query(collection(db,'operators'), orderBy('email')));
+      const opsSnap = await getDocs(query(collection(db,'operators'), orderBy('email')));
       userSelect.innerHTML = ''; rolesList.innerHTML='';
-      ops.forEach(d=>{
+      const opMap = {}; 
+      opsSnap.forEach(d=>{
         const u = {id:d.id, ...d.data()};
+        opMap[u.id] = u;
         const opt = document.createElement('option'); opt.value = u.id; opt.textContent = `${u.email}${u.displayName? ' ('+u.displayName+')':''}`;
         userSelect.appendChild(opt);
       });
@@ -655,12 +682,17 @@
         const s = await getDoc(doc(db,'operators', uid));
         displayNameInput.value = s.exists()? (s.data().displayName||'') : '';
       });
-      // Render current roles
+      // Render current roles (show email instead of uid)
       const roleDocs = await getDocs(collection(db,'roles'));
       roleDocs.forEach(d=>{
         const r = {id:d.id, ...d.data()};
+        const email = opMap[r.id]?.email || r.id;
+        const disp = opMap[r.id]?.displayName ? ` (${opMap[r.id].displayName})` : '';
         const card = document.createElement('div'); card.className='card';
-        card.innerHTML = `<div class="row" style="justify-content:space-between"><div><b>${r.id}</b> → ${ROLE_LABELS[r.role]||r.role}</div><button class="btn small ghost" data-remove="${r.id}">Odebrat</button></div>`;
+        card.innerHTML = `<div class="row" style="justify-content:space-between">
+          <div><b>${email}</b>${disp} → ${ROLE_LABELS[r.role]||r.role}</div>
+          <button class="btn small ghost" data-remove="${r.id}">Odebrat</button>
+        </div>`;
         rolesList.appendChild(card);
         card.querySelector('[data-remove]')?.addEventListener('click', async()=>{
           if(confirm('Odebrat roli?')) await deleteDoc(doc(db,'roles', r.id));
@@ -723,6 +755,14 @@
       milestonesModal.classList.toggle('hidden');
     });
     closeMilestonesModal?.addEventListener('click', ()=> milestonesModal.classList.add('hidden'));
+
+    // Avatar modal
+    avatarBtn?.addEventListener('click', ()=>{
+      if(!currentUser){ alert('Nejprve se přihlaste.'); return; }
+      buildAvatarGrid();
+      avatarModal.classList.remove('hidden');
+    });
+    closeAvatarModal?.addEventListener('click', ()=> avatarModal.classList.add('hidden'));
 
     // === Populate target operator select (for managers) ===
     async function populateTargetOperatorSelect(){
@@ -855,20 +895,28 @@
 
     // Leaderboard = sum of logs per operator (client-side aggregation)
     async function refreshLeaderboard(){
-      const opsSnap = await getDocs(collection(db,'operators'));
-      const msSnap = await getDocs(query(collection(db,'milestones'), orderBy('threshold')));
+      const [opsSnap, msSnap, rolesSnap] = await Promise.all([
+        getDocs(collection(db,'operators')),
+        getDocs(query(collection(db,'milestones'), orderBy('threshold'))),
+        getDocs(collection(db,'roles'))
+      ]);
       const milestones = []; msSnap.forEach(d=> milestones.push(d.data()));
+      const roleMap = {}; rolesSnap.forEach(r=>{ const x=r.data(); roleMap[r.id]=x.role; });
 
-      const ops = []; opsSnap.forEach(d=> ops.push({id:d.id, ...d.data()}));
+      const ops = [];
+      opsSnap.forEach(d=>{
+        const u = {id:d.id, ...d.data()};
+        const role = roleMap[u.id];
+        if(OPERATOR_ROLES.has(role)) ops.push(u);
+      });
 
       const sums = {};
       const logsSnap = await getDocs(collection(db,'logs'));
       logsSnap.forEach(d=>{ const l=d.data(); sums[l.uid]=(sums[l.uid]||0)+Number(l.delta||0)});
 
-      const items = ops.map(o=>({ uid:o.id, name:o.displayName||o.email||o.id, total:sums[o.id]||0 }));
+      const items = ops.map(o=>({ uid:o.id, name:o.displayName||o.email||o.id, total:sums[o.id]||0, avatarUrl:o.avatarUrl||null, avatarColor:o.avatarColor||null }));
       items.sort((a,b)=> b.total - a.total);
       const maxTotal = Math.max(1, ...items.map(i=>i.total));
-
       const medals = ['🥇','🥈','🥉'];
 
       leaderboard.innerHTML = '';
@@ -878,11 +926,12 @@
         const achievedLabel = achieved ? achieved.label : null;
         const pct = Math.max(0, Math.min(100, Math.round((it.total/maxTotal)*100)));
 
-        const nameHtml = `${it.name} ${idx<3? `<span class=\"medal\">${medals[idx]}</span>`:''} ${achievedLabel? `<span class=\"badge\" title=\"Dosažený milník\">${achievedLabel}</span>`:''}`;
+        const nameHtml = `${it.name} ${achievedLabel? `<span class=\"pill\" title=\"Dosažená hodnost\">${achievedLabel}</span>`:''}`;
 
         card.innerHTML = `
           <div class="leaderboard-item">
-            <div class="avatar">${(it.name||'--').substring(0,2).toUpperCase()}</div>
+            <div class="medal-big">${idx<3? medals[idx]: ''}</div>
+            <div class="avatar" data-uid="${it.uid}">${it.avatarUrl? `<img src='${it.avatarUrl}' alt='avatar' onerror="this.closest('.avatar').textContent='${(it.name||'--').substring(0,2).toUpperCase()}';">` : (it.name||'--').substring(0,2).toUpperCase()}</div>
             <div>
               <div class="row" style="justify-content:space-between">
                 <div><b>${nameHtml}</b></div>
@@ -894,6 +943,12 @@
             </div>
             <div>#${idx+1}</div>
           </div>`;
+        const av = card.querySelector('.avatar');
+        if(!it.avatarUrl){
+          // apply stable gradient color based on stored or generated color
+          const color = it.avatarColor || generateAndPersistAvatarColor(it.uid);
+          av.style.background = `linear-gradient(135deg, ${color}, rgba(255,255,255,0.85))`;
+        }
         leaderboard.appendChild(card);
       });
     }
@@ -953,7 +1008,61 @@
       console.table(tests);
     }
     runSelfTests();
-  </script>
+      // === Avatar helpers ===
+    function hashToColor(str){
+      let h=0; for(let i=0;i<str.length;i++){ h = (h<<5)-h + str.charCodeAt(i); h|=0; }
+      // Map hash to HSL (pastel-ish)
+      const hue = Math.abs(h)%360; const sat=70; const light=60;
+      return `hsl(${hue} ${sat}% ${light}%)`;
+    }
+    function generateAndPersistAvatarColor(uid){
+      const c = hashToColor(uid||Math.random().toString());
+      // fire and forget, best-effort; only if current user or manager can set
+      if(currentUser && (currentUser.uid===uid || currentRole==='manager')){
+        updateDoc(doc(db,'operators', uid), { avatarColor: c }).catch(()=>{});
+      }
+      return c;
+    }
+
+    async function buildAvatarGrid(){
+      avatarGrid.innerHTML='';
+      // Try load settings for avatars
+      let base = '', count=10;
+      try{
+        const s = await getDoc(doc(db,'settings','avatars'));
+        if(s.exists()){ base = s.data().base_url||''; count = Number(s.data().count)||10; }
+      }catch{}
+      // Fallback: attempt to build list even if base missing (will show not available)
+      const items = [];
+      for(let i=1;i<=count;i++){
+        const nn = String(i).padStart(2,'0');
+        const url = base? `${base.replace(/\/$/,'')}/avatar_${nn}.png` : '';
+        items.push({i, url});
+      }
+      items.forEach(it=>{
+        const btn = document.createElement('button'); btn.className='btn ghost'; btn.style.padding='0'; btn.style.borderRadius='12px'; btn.title = `avatar_${String(it.i).padStart(2,'0')}.png`;
+        btn.innerHTML = `<div style="width:80px; height:80px; overflow:hidden; border-radius:12px; background:rgba(255,255,255,.06); display:grid; place-items:center">
+          ${it.url? `<img src="${it.url}" alt="avatar" style="width:100%; height:100%; object-fit:cover" onerror="this.replaceWith(document.createTextNode('N A'))">` : 'N A'}
+        </div>`;
+        btn.addEventListener('click', async()=>{
+          if(!currentUser) return alert('Nejprve se přihlaste.');
+          try{
+            await updateDoc(doc(db,'operators', currentUser.uid), { avatarUrl: it.url || null });
+            avatarModal.classList.add('hidden');
+            refreshLeaderboard();
+          }catch(e){ alert('Uložení avatara selhalo: '+(e?.message||e)); }
+        });
+        avatarGrid.appendChild(btn);
+      });
+      // Extra možnost: odebrat avatar
+      const noneBtn = document.createElement('button'); noneBtn.className='btn small'; noneBtn.textContent='Žádný avatar (použít iniciály)';
+      noneBtn.addEventListener('click', async()=>{
+        try{ await updateDoc(doc(db,'operators', currentUser.uid), { avatarUrl: null }); avatarModal.classList.add('hidden'); refreshLeaderboard(); }
+        catch(e){ alert('Uložení selhalo: '+(e?.message||e)); }
+      });
+      avatarGrid.appendChild(noneBtn);
+    }
+</script>
 
   <!-- =============================
        FIREBASE FIRESTORE SECURITY RULES (kopírujte **jen** blok níže do konzole Firebase)
@@ -965,16 +1074,20 @@ service cloud.firestore {
 
     function isSignedIn() { return request.auth != null; }
     function userId() { return request.auth.uid; }
-    function userRole(u) { return get(/databases/$(database)/documents/roles/$(u)).data.role; }
+    function userRole(u) {
+      return get(/databases/$(database)/documents/roles/$(u)).data.role;
+    }
     function isManager() { return userRole(userId()) == 'manager'; }
+
     function allowedCategoriesFor(role) {
-      return role == 'manager' ? ['tel_weekly','kore_static'] :
-             role == 'operator_tel' ? ['tel_weekly'] :
-             role == 'operator_kore' ? ['kore_static'] :
-             role == 'operator_tel_kore' ? ['tel_weekly','kore_static'] : [];
+      return role == 'manager' ? ['tel_weekly','kore_static']
+           : role == 'operator_tel' ? ['tel_weekly']
+           : role == 'operator_kore' ? ['kore_static']
+           : role == 'operator_tel_kore' ? ['tel_weekly','kore_static']
+           : [];
     }
     function categoryAllowedForCurrentUser(category) {
-      return allowedCategoriesFor(userRole(userId())).hasAny([category]);
+      return category in allowedCategoriesFor(userRole(userId()));
     }
     function activityCategory(actId) {
       return get(/databases/$(database)/documents/activities/$(actId)).data.category;
@@ -1025,8 +1138,8 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/activities/$(request.resource.data.activityId))
         && categoryAllowedForCurrentUser(activityCategory(request.resource.data.activityId))
         && (
-              request.resource.data.uid == userId() /* operator sám za sebe */
-              || isManager() /* manager může za kohokoli */
+             request.resource.data.uid == userId() /* operator sám za sebe */
+             || isManager() /* manager může za kohokoli */
            )
         && (activityCategory(request.resource.data.activityId) != 'tel_weekly' || activityWithinWeek(request.resource.data.activityId))
         && request.resource.data.keys().hasOnly(['uid','activityId','activityName','category','delta','createdAt'])
@@ -1044,7 +1157,9 @@ service cloud.firestore {
       allow update: if false;
     }
 
-    match /{document=**} { allow read, write: if false; }
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
 -->
