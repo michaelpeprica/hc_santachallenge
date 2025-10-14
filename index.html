@@ -89,6 +89,8 @@
         <h1>Vánoční výzva 2025</h1>
       </div>
       <nav>
+        <button class="btn small" id="mapBtn" title="Mapa">🗺️ Mapa</button>
+        <button class="btn small" id="milestonesBtn" title="Milníky">🏆 Milníky</button>
         <button class="btn small" id="themeToggle" title="Přepnout téma">🌓 Téma</button>
         <button class="btn small ghost" id="signOutBtn" title="Odhlásit">Odhlásit</button>
       </nav>
@@ -174,11 +176,14 @@
 
         <div id="cfg-milestones" class="card tabpanel hidden">
           <h2>Milníky</h2>
-          <div class="row">
+          <div class="row" style="flex-wrap:wrap; gap:8px">
             <input id="msThreshold" class="input" type="number" placeholder="Počet dárků"/>
             <input id="msLabel" class="input" placeholder="Označení (badge)"/>
+            <input id="msReward" class="input" placeholder="Výhra (volitelné)"/>
+            <label class="row" style="gap:6px"><input type="checkbox" id="msVisible" checked /> Viditelný</label>
             <button class="btn" id="addMilestone">Přidat milník</button>
           </div>
+          <div class="muted">Tip: Milník můžete níže upravit (práh, název, výhra) a přepínat viditelnost.</div>
           <div id="milestonesList" class="stack" style="margin-top:8px"></div>
         </div>
 
@@ -215,6 +220,15 @@
           </div>
           <p class="muted">Pozn.: Bez Cloud Functions probíhá přepočet na klientovi. Žebříček se počítá ze součtu dokumentů v <code>logs</code>. Audit se ukládá do <code>audits</code>.</p>
         </div>
+      </section>
+
+      <!-- Milestones modal -->
+      <section id="milestonesModal" class="card hidden" style="position:fixed; right:16px; top:64px; z-index:10; max-width:420px">
+        <div class="row" style="justify-content:space-between; align-items:center">
+          <h2 style="margin:0">Milníky</h2>
+          <button class="btn small ghost" id="closeMilestonesModal">Zavřít</button>
+        </div>
+        <div id="milestonesPublicList" class="stack"></div>
       </section>
     </main>
 
@@ -271,6 +285,11 @@
     const targetOperator = document.getElementById('targetOperator');
 
     const milestoneLegend = document.getElementById('milestoneLegend');
+    const milestonesPublicList = document.getElementById('milestonesPublicList');
+    const milestonesModal = document.getElementById('milestonesModal');
+    const closeMilestonesModal = document.getElementById('closeMilestonesModal');
+    const mapBtn = document.getElementById('mapBtn');
+    const milestonesBtn = document.getElementById('milestonesBtn');
     const leaderboard = document.getElementById('leaderboard');
 
     // Manager UI
@@ -292,6 +311,8 @@
 
     const msThreshold = document.getElementById('msThreshold');
     const msLabel = document.getElementById('msLabel');
+    const msReward = document.getElementById('msReward');
+    const msVisible = document.getElementById('msVisible');
     const addMilestone = document.getElementById('addMilestone');
     const milestonesList = document.getElementById('milestonesList');
 
@@ -569,21 +590,42 @@
       const qMs = query(collection(db,'milestones'), orderBy('threshold'));
       unsubscribeMs = onSnapshot(qMs, (snap)=>{
         milestonesList.innerHTML = '';
-        const items = []; snap.forEach(d=>items.push({id:d.id, ...d.data()}));
-        milestoneLegend.textContent = items.length ? `Milníky: ${items.map(i=>i.threshold+ ' – '+ i.label).join(' • ')}` : 'Milníky zatím nejsou nastavené';
+        milestonesPublicList.innerHTML='';
+        const items = []; snap.forEach(d=>items.push({id:d.id, visible: d.data().visible!==false, reward: d.data().reward||'', ...d.data()}));
+        const visibleItems = items.filter(i=> i.visible!==false);
+        milestoneLegend.textContent = visibleItems.length ? `Milníky: ${visibleItems.map(i=>i.threshold+ ' – '+ i.label).join(' • ')}` : 'Milníky zatím nejsou nastavené';
+
+        // Public list in modal (visible only)
+        visibleItems.forEach(m=>{
+          const c = document.createElement('div'); c.className='card';
+          c.innerHTML = `<div class="row" style="justify-content:space-between"><div><b>${m.threshold}</b> bodů – ${m.label}${m.reward? ` <span class=\"badge\" title=\"Výhra\">${m.reward}</span>`:''}</div></div>`;
+          milestonesPublicList.appendChild(c);
+        });
+
+        // Manager edit list
         items.forEach(m=>{
-          const row = document.createElement('div'); row.className='row';
+          const row = document.createElement('div'); row.className='card';
           row.innerHTML = `
-            <div class="card" style="flex:1; padding:10px; display:grid; grid-template-columns:1fr 2fr auto; gap:8px; align-items:center">
-              <div><b>${m.threshold}</b> bodů</div>
-              <div>${m.label}</div>
-              <div class="row">
-                <button class="btn small ghost" data-del="${m.id}">Smazat</button>
-              </div>
+            <div class="row" style="gap:8px; align-items:center; flex-wrap:wrap">
+              <input class="input" data-ms-th="${m.id}" type="number" value="${m.threshold}" style="max-width:120px"/>
+              <input class="input" data-ms-lb="${m.id}" value="${m.label||''}" style="flex:1; min-width:180px"/>
+              <input class="input" data-ms-rw="${m.id}" value="${m.reward||''}" placeholder="Výhra" style="flex:1; min-width:180px"/>
+              <label class="row" style="gap:6px"><input type="checkbox" data-ms-vs="${m.id}" ${m.visible!==false?'checked':''}/> Viditelné</label>
+              <button class="btn small ghost" data-ms-save="${m.id}">Uložit</button>
+              <button class="btn small ghost" data-del="${m.id}">Smazat</button>
             </div>`;
           milestonesList.appendChild(row);
-          row.querySelector('[data-del]')?.addEventListener('click', async()=>{
+          row.querySelector(`[data-del="${m.id}"]`)?.addEventListener('click', async()=>{
             if(confirm('Smazat milník?')) await deleteDoc(doc(db,'milestones', m.id));
+          });
+          row.querySelector(`[data-ms-save="${m.id}"]`)?.addEventListener('click', async()=>{
+            const th = Number(row.querySelector(`[data-ms-th="${m.id}"]`).value);
+            const lb = row.querySelector(`[data-ms-lb="${m.id}"]`).value.trim();
+            const rw = row.querySelector(`[data-ms-rw="${m.id}"]`).value.trim();
+            const vs = !!row.querySelector(`[data-ms-vs="${m.id}"]`).checked;
+            if(!Number.isFinite(th)) return alert('Zadejte platný práh.');
+            try{ await updateDoc(doc(db,'milestones', m.id), { threshold: th, label: lb, reward: rw, visible: vs }); }
+            catch(e){ alert('Uložení selhalo: '+(e?.message||e)); }
           });
         });
       });
@@ -592,8 +634,8 @@
     addMilestone?.addEventListener('click', async()=>{
       if(!msThreshold.value || !msLabel.value) return alert('Doplňte hodnotu a popisek.');
       try{
-        await addDoc(collection(db,'milestones'), { threshold: Number(msThreshold.value), label: msLabel.value.trim(), createdAt: serverTimestamp() });
-        msThreshold.value=''; msLabel.value='';
+        await addDoc(collection(db,'milestones'), { threshold: Number(msThreshold.value), label: msLabel.value.trim(), reward: (msReward.value||'').trim(), visible: !!msVisible.checked, createdAt: serverTimestamp() });
+        msThreshold.value=''; msLabel.value=''; msReward.value=''; msVisible.checked=true;
       }catch(e){ alert('Chyba přidání: '+(e?.message||e)); }
     });
 
@@ -660,6 +702,27 @@
         alert('Popis týdne uložen');
       }catch(e){ alert('Chyba uložení: '+(e?.message||e)); }
     });
+
+    // Map button – open image page from settings/map.image_url (optional)
+    mapBtn?.addEventListener('click', async()=>{
+      const w = window.open('', '_blank');
+      try{
+        const mapDoc = await getDoc(doc(db,'settings','map'));
+        const url = (mapDoc.exists()? mapDoc.data().image_url: '') || '';
+        const html = `<!doctype html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mapa</title></head><body style="margin:0; display:grid; place-items:center; min-height:100vh; font-family:system-ui,sans-serif; background:#0c1222; color:#e7f0ff"><div id="wrap" style="text-align:center; padding:20px">${url? `<img src="${url}" alt="Mapa" style="max-width:100%; height:auto;" onerror="this.replaceWith(document.createTextNode('Obrázek mapy není dostupný.'))">` : 'Obrázek mapy zatím není nastaven.'}<div style="margin-top:12px; opacity:.7">Toto okno lze zavřít.</div></div></body></html>`;
+        w.document.write(html);
+        w.document.close();
+      }catch(e){
+        w.document.write('<p style="font-family:system-ui">Mapa není k dispozici.</p>');
+        w.document.close();
+      }
+    });
+
+    // Milestones button – toggle modal with visible milestones
+    milestonesBtn?.addEventListener('click', ()=>{
+      milestonesModal.classList.toggle('hidden');
+    });
+    closeMilestonesModal?.addEventListener('click', ()=> milestonesModal.classList.add('hidden'));
 
     // === Populate target operator select (for managers) ===
     async function populateTargetOperatorSelect(){
@@ -811,7 +874,7 @@
       leaderboard.innerHTML = '';
       items.forEach((it,idx)=>{
         const card = document.createElement('div'); card.className='card';
-        const achieved = milestones.filter(m=> it.total >= m.threshold).slice(-1)[0] || null;
+        const achieved = milestones.filter(m=> it.total >= m.threshold && (m.visible!==false)).slice(-1)[0] || null;
         const achievedLabel = achieved ? achieved.label : null;
         const pct = Math.max(0, Math.min(100, Math.round((it.total/maxTotal)*100)));
 
