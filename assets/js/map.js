@@ -201,6 +201,10 @@ function resizeViewport(){
 
 const ro = new ResizeObserver(resizeViewport);
 ro.observe(document.body); ro.observe(infoPane);
+const headerEl = document.querySelector('header');
+const footerEl = document.querySelector('footer');
+if(headerEl) ro.observe(headerEl);
+if(footerEl) ro.observe(footerEl);
 if(window.visualViewport){
   visualViewport.addEventListener('resize', resizeViewport);
   visualViewport.addEventListener('scroll', resizeViewport);
