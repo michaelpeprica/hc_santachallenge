@@ -6,14 +6,39 @@
   <title>Hodnosti • Vánoční výzva 2025</title>
   <link rel="stylesheet" href="./assets/css/styles.css" />
   <style>
-    .ranks-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); }
-    .rank-card{ display:flex; flex-direction:column; gap:10px; align-items:flex-start }
-    .rank-media{
-      width:100%; aspect-ratio: 4 / 3; border-radius:14px; overflow:hidden;
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.15));
-      display:grid; place-items:center;
-    }
-    .rank-media img{ width:100%; height:100%; object-fit:cover; display:block; }
+.ranks-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, 1fr); /* dvě karty vedle sebe */
+  justify-items: center;
+}
+
+.rank-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 420px; /* zabrání přílišné šířce na velkých monitorech */
+}
+
+.rank-media {
+  width: 100%;
+  aspect-ratio: 2 / 3; /* nový poměr stran */
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.15));
+  display: grid;
+  place-items: center;
+}
+
+.rank-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
     .rank-title{ font-weight:800; font-size:1.05rem }
     .rank-meta{ color:var(--muted); font-size:.9rem }
     .rank-secret{ font-weight:700; }
