@@ -29,9 +29,38 @@ main{position:relative; z-index:1; padding:16px; display:grid; gap:16px; max-wid
 .leaderboard-item{display:grid; grid-template-columns:36px 52px 1fr auto; gap:12px; align-items:center}
 .medal-big{font-size:1.6rem; line-height:1} .avatar{width:52px; height:52px; border-radius:15px; background:linear-gradient(45deg,#f5f5dc,#fff); display:grid; place-items:center; font-weight:800; color:#000; overflow:hidden}
 .pill{display:inline-block; margin-left:.5rem; padding:.15rem .5rem; font-size:.75rem; border-radius:999px; background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.28)}
-.tabs{display:flex; gap:6px; flex-wrap:wrap}
-.tab{padding:.55rem .8rem; border-radius:12px; background:transparent; border:1px solid rgba(255,255,255,.15); cursor:pointer}
-.tab.active{background:var(--accent); color:#fff; border-color:transparent}
+/* === Tabs – default === */
+.tabs .tab {
+  border: 1px solid rgba(0,0,0,.1);
+  background: var(--tab-bg-inactive, rgba(255,255,255,.6));
+  color: var(--tab-fg-inactive, #222);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+.tabs .tab.active {
+  background: var(--tab-bg-active, rgba(0,0,0,.08));
+  color: var(--tab-fg-active, #111);
+  border-color: rgba(0,0,0,.2);
+}
+
+/* === Tabs – dark overrides === */
+[data-theme="dark"] .tabs .tab {
+  background: var(--tab-bg-inactive, rgba(255,255,255,.06));
+  color: var(--tab-fg-inactive, #dfe6f3);
+  border-color: rgba(255,255,255,.14);
+}
+[data-theme="dark"] .tabs .tab.active {
+  background: var(--tab-bg-active, rgba(255,255,255,.12));
+  color: var(--tab-fg-active, #fff);
+  border-color: rgba(255,255,255,.22);
+}
+
+/* drobná úprava pro přístupnost při focuse */
+.tabs .tab:focus-visible {
+  outline: 2px solid #4da3ff;
+  outline-offset: 2px;
+}
+
 .account{display:inline-flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid rgba(255,255,255,.15); border-radius:999px; background:var(--card);}
 .account .miniavatar{width:22px; height:22px; border-radius:999px; overflow:hidden; display:grid; place-items:center; font-weight:700; font-size:.75rem; background:rgba(255,255,255,.85); color:#111}
 .footer{opacity:.7; padding:10px 16px; font-size:.85rem}
