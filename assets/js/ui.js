@@ -6,7 +6,6 @@ export function initTheme(){
   const t = localStorage.getItem('xx_theme') || 'dark';
   applyTheme(t);
 }
-
 function applyTheme(t){
   document.body.setAttribute('data-theme', t);
   localStorage.setItem('xx_theme', t);
@@ -37,13 +36,12 @@ function renderHeader(){
   });
   document.getElementById('signOutBtn')?.addEventListener('click', ()=> signOut(auth));
 
-  // zvýraznění aktivní stránky:
+  // zvýraznění aktivní stránky
   const path = location.pathname.split('/').pop() || 'index.html';
   for(const a of header.querySelectorAll('a.btn')) {
     if (a.getAttribute('href') === `./${path}`) a.classList.add('active');
   }
 }
-
 function renderFooter(){
   const f = document.createElement('footer');
   f.className = 'footer';
@@ -64,7 +62,7 @@ export function initChrome(){
   });
 }
 
-// --- jednoduché pozadí + sníh (převzato z původní stránky, mírně zkráceno) ---
+// --- BG + sníh (zkráceno) ---
 function initBg(){
   const bg = document.createElement('div');
   bg.className = 'bg-illustration';
