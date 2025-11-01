@@ -159,6 +159,24 @@ function resizeViewport(){
   main.style.boxSizing = 'border-box';
   main.style.overflow = 'hidden';
 
+    // zachovej správný aspect poměr (2:3) v rámci výšky okna
+  const viewports = document.querySelectorAll('.viewport');
+  viewports.forEach(vp => {
+    const fig = vp.querySelector('figure');
+    if (!fig) return;
+    const vh = vp.clientHeight;
+    const vw = vp.clientWidth;
+    const desiredW = vh * (2 / 3);
+    const desiredH = vw * (3 / 2);
+    if (desiredW < vw) {
+      fig.style.height = vh + 'px';
+      fig.style.width  = desiredW + 'px';
+    } else {
+      fig.style.width  = vw + 'px';
+      fig.style.height = desiredH + 'px';
+    }
+  });
+
   // info panel může uvnitř scrollovat, ale nevyjede ven
   const cs = getComputedStyle(main);
   const padTop = parseFloat(cs.paddingTop)||0;
