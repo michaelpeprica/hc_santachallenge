@@ -6,7 +6,6 @@ import {
 
 // --- DOM ---
 const track = document.getElementById("track");
-const dotsWrap = document.getElementById("dots");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 const viewport = document.getElementById("viewport");
@@ -76,22 +75,18 @@ let slides = []; // {title, desc, base}  base= `${base_url}/P{i+1}`
 let index=0; let total=0;
 
 function renderSlides(){
-  track.innerHTML=''; dotsWrap.innerHTML='';
-  slides.forEach((s, idx)=>{
+  track.innerHTML = '';
+  slides.forEach((s)=>{
     const li = document.createElement("div");
     li.className="slide"; li.setAttribute("role","listitem");
 
     const fig=document.createElement("figure");
     const img=createSmartImage(s.base);
+    // podpora přepínání režimu cover/contain dvojklikem
+    img.addEventListener('dblclick', ()=> img.classList.toggle('cover'));
     fig.appendChild(img);
     li.appendChild(fig);
     track.appendChild(li);
-
-    const dot=document.createElement("button");
-    dot.className="dot";
-    dot.setAttribute("aria-label",`Přejít na snímek ${idx+1}`);
-    dot.addEventListener("click",()=>goTo(idx));
-    dotsWrap.appendChild(dot);
   });
   total = slides.length;
   index = Math.min(index, Math.max(0,total-1));
@@ -104,27 +99,30 @@ function update(){
     descEl.textContent  = 'Nastav v sekci Vedoucí → Karusel.';
     metaEl.textContent  = '';
     track.style.transform = 'translateX(0)';
-    dotsWrap.innerHTML='';
     return;
   }
   track.style.transform = `translateX(${-index*100}%)`;
-  [...dotsWrap.children].forEach((d,i)=>{
-    d.classList.toggle("active", i===index);
-    d.setAttribute("aria-current", i===index ? "true" : "false");
-  });
   const s = slides[index];
   titleEl.textContent = s.title || `Snímek ${index+1}`;
   descEl.textContent  = s.desc  || '';
-  metaEl.textContent  = `Snímek ${index+1} / ${total}`;
+  metaEl.textContent  = `${index+1} / ${total}`;
   document.title = `${s.title || `Snímek ${index+1}`} – Karusel`;
 }
+
 function goTo(i){ index=(i+total)%total; update(); }
 function next(){ goTo(index+1); }
 function prev(){ goTo(index-1); }
 
 prevBtn.addEventListener("click", prev);
 nextBtn.addEventListener("click", next);
-addEventListener("keydown", e=>{ if(e.key==="ArrowRight") next(); if(e.key==="ArrowLeft")  prev(); });
+addEventListener("keydown", e=>{
+  if(e.key==="ArrowRight") next();
+  if(e.key==="ArrowLeft")  prev();
+  if(e.key.toLowerCase()==="z"){
+    const curImg = track.querySelectorAll('.slide img')[index];
+    if(curImg) curImg.classList.toggle('cover');
+  }
+});
 
 // Swipe
 (function enableSwipe(el){
@@ -147,7 +145,6 @@ function getViewportSize(){
   const ww = vv ? vv.width  : window.innerWidth;
   const wh = vv ? vv.height : window.innerHeight;
 
-  // skutečné výšky chromu stránky
   const headerH = (document.querySelector('header')?.offsetHeight || 0);
   const footerH = (document.querySelector('footer')?.offsetHeight || 0);
 
@@ -155,50 +152,40 @@ function getViewportSize(){
   const cs = main ? getComputedStyle(main) : null;
   const padTop = cs ? parseFloat(cs.paddingTop)||0 : 16;
   const padBottom = cs ? parseFloat(cs.paddingBottom)||0 : 16;
+  const padLeft = cs ? parseFloat(cs.paddingLeft)||0 : 16;
+  const padRight = cs ? parseFloat(cs.paddingRight)||0 : 16;
   const gap = 16;
 
-  // skutečná výška řady s tečkami
-  const dotsEl = document.getElementById('dots');
-  const dotsH = (dotsEl?.offsetHeight || 36); // musí odpovídat CSS .dots{height:36px}
-
-  // Celkový prostor pro obsah karty
   const totalH = Math.max(0, wh - headerH - footerH);
 
-  // Info panel – maximální výška určíme mimo stacked režim níže
-  // (v stacked režimu volíme rezervu níže)
-  // Dostupné rozměry pro karusel (layout+viewport)
-  let usableW = ww - parseFloat(cs?.paddingLeft||'16') - parseFloat(cs?.paddingRight||'16');
-  let usableH = totalH - padTop - padBottom - dotsH;
+  // Šířka pro layout
+  let usableW = ww - padLeft - padRight;
+  // Výška pro layout (celé <main> bez paddingů)
+  const usableH = totalH - padTop - padBottom;
 
   if(!isStacked()){
-    // vedle sebe: panel ubírá šířku, ne výšku
     const paneW = infoPane.getBoundingClientRect().width || 0;
     usableW = Math.max(0, usableW - paneW - gap);
-    // info panel může mít max-height = vše nad tečkami
-    infoPane.style.maxHeight = Math.max(0, totalH - padTop - padBottom - dotsH) + 'px';
+    // panel může být vysoký jako celý layout
+    infoPane.style.maxHeight = Math.max(0, usableH) + 'px';
   } else {
-    // stacked: panel nad/po viewportu – rezervuj panelu výšku, viewport dostane zbytek
-    const reserveForPane = Math.max(140, Math.min(320, (totalH - padTop - padBottom - dotsH) * 0.38));
-    usableH = Math.max(120, usableH - reserveForPane);
-    infoPane.style.maxHeight = Math.max(0, totalH - padTop - padBottom - dotsH - 8) + 'px';
+    // ve stacku dáme panelu přiměřenou rezervu a zbytek viewportu
+    const reserveForPane = Math.max(140, Math.min(320, usableH * 0.38));
+    infoPane.style.maxHeight = Math.max(0, usableH - 8) + 'px';
+    // viewport výšku dopočítáme až v CSS/roztažením – tady žádný „pevný poměr“
   }
 
-  // Udrž poměr 2:3 a vejdi se do usable boxu
-  const fitW = Math.min(usableW, (RATIO_W/RATIO_H) * usableH);
-  const fitH = Math.min(usableH, (RATIO_H/RATIO_W) * usableW);
-
-  return { width: Math.round(fitW), height: Math.round(fitH), totalH };
+  // Vracíme hodnotu pro výšku <main> (aby stránka ne-scrollovala)
+  return { totalH };
 }
+
 function resizeViewport(){
-  const {width, height, totalH} = getViewportSize();
-  viewport.style.width  = width + "px";
-  viewport.style.height = height + "px";
+  const { totalH } = getViewportSize();
 
   const main = document.querySelector('main');
   if(main){
     main.style.height = totalH + "px";
     main.style.boxSizing = 'border-box';
-    // volitelné, ale pomáhá: ať vnitřní .carousel umí vyplnit výšku
     main.style.display = 'flex';
     main.style.flexDirection = 'column';
   }
