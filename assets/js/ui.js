@@ -78,7 +78,7 @@ function initBg(){
     <path d="M0,680 C220,640 420,700 640,680 C900,650 1120,720 1440,700 L1440,900 L0,900 Z"
           fill="var(--bg-hill)" />
     <!-- sněhulák -->
-    <g transform="translate(1020, 620)">
+    <g transform="translate(1220, 610)">
       <circle cx="0" cy="0" r="36" fill="#fff"/>
       <circle cx="0" cy="58" r="52" fill="#fff"/>
       <!-- oči -->
