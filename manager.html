@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vedoucí • Vánoční výzva 2025</title>
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <main>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="cfg-activities">Aktivity</button>
+      <button class="tab" data-tab="cfg-milestones">Hodnosti</button>
+      <button class="tab" data-tab="cfg-roles">Operátoři</button>
+      <button class="tab" data-tab="cfg-utils">Nástroje</button>
+    </div>
+
+    <section id="cfg-activities" class="card tabpanel">
+      <h2>Nastavení aktivit</h2>
+      <div class="row">
+        <input id="actName" class="input" placeholder="Název aktivity"/>
+        <select id="actCategory" class="input">
+          <option value="tel_weekly">Telefonie – týdenní</option>
+          <option value="kore_static">Korespondence – stálé</option>
+        </select>
+        <input id="actPoints" class="input" type="number" placeholder="Body za splnění"/>
+        <input id="actDesc" class="input" placeholder="Krátký popis (volitelné)"/>
+        <button class="btn" id="addActivity">Přidat</button>
+      </div>
+      <div id="activitiesList" class="stack" style="margin-top:8px"></div>
+    </section>
+
+    <section id="cfg-milestones" class="card tabpanel hidden">
+      <h2>Hodnosti</h2>
+      <div class="row" style="flex-wrap:wrap; gap:8px">
+        <input id="msThreshold" class="input" type="number" placeholder="Počet dárků"/>
+        <input id="msLabel" class="input" placeholder="Označení (badge)"/>
+        <input id="msReward" class="input" placeholder="Výhra (volitelné)"/>
+        <label class="row" style="gap:6px"><input type="checkbox" id="msVisible" checked /> Viditelný</label>
+        <button class="btn" id="addMilestone">Přidat milník</button>
+      </div>
+      <div class="muted">Tip: Hodnost můžete níže upravit (práh, název, výhra) a přepínat viditelnost.</div>
+      <div id="milestonesList" class="stack" style="margin-top:8px"></div>
+    </section>
+
+    <section id="cfg-roles" class="card tabpanel hidden">
+      <h2>Operátoři – role a jména</h2>
+      <div class="row">
+        <select id="userSelect" class="input" style="min-width:280px"></select>
+        <input id="displayNameInput" class="input" placeholder="Jméno Příjmení" style="min-width:220px"/>
+        <select id="roleSelect" class="input">
+          <option value="manager">manager</option>
+          <option value="operator_tel">operator_tel</option>
+          <option value="operator_tel_kore">operator_tel_kore</option>
+          <option value="operator_kore">operator_kore</option>
+        </select>
+        <button class="btn" id="assignRole">Uložit</button>
+      </div>
+      <p class="muted">Role se ukládají do <code>roles/{uid}</code>. Jméno do <code>operators/{uid}.displayName</code>.</p>
+      <div id="rolesList" class="stack" style="margin-top:8px"></div>
+    </section>
+
+    <section id="cfg-utils" class="card tabpanel hidden">
+      <h2>Nástroje</h2>
+      <div class="stack">
+        <div class="row">
+          <button class="btn ghost" id="recomputeLeaderboard">Přepočítat žebříček (klientsky)</button>
+          <button class="btn ghost" id="refreshAudits">Načíst Audit bodů</button>
+        </div>
+        <div class="stack">
+          <label for="weeklyInfoManager">Krátký popis pro sekci „Tento týden”</label>
+          <textarea id="weeklyInfoManager" class="input" rows="3" placeholder="Např. **Důležité**: tento týden běží speciální sprint…"></textarea>
+          <div class="row" style="justify-content:flex-end"><button class="btn" id="saveWeekInfo">Uložit popis týdne</button></div>
+        </div>
+        <div id="auditsList" class="stack" style="margin-top:8px"></div>
+      </div>
+      <p class="muted">Pozn.: Bez Cloud Functions probíhá přepočet na klientovi. Žebříček ze součtu dokumentů v <code>logs</code>. Audit v <code>audits</code>.</p>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initTheme, initChrome } from './assets/js/ui.js';
+    import { guard } from './assets/js/auth-guard.js';
+    import './assets/js/manager.js';
+
+    initTheme(); initChrome();
+    guard({ requireAuth: true, requireManager: true, onReady(){} });
+  </script>
+</body>
+</html>
