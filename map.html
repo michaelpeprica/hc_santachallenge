@@ -29,7 +29,26 @@
     .nav{ position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; pointer-events:none; }
     .nav .btn{ pointer-events:auto; width:42px; height:42px; border-radius:999px; background:rgba(0,0,0,.45); color:#fff; border:1px solid rgba(255,255,255,.15); display:grid; place-items:center; margin:10px; cursor:pointer; }
     .dots{ display:flex; gap:8px; justify-content:center; align-items:center; min-height:32px; }
-    .dot{ width:10px; height:10px; border-radius:50%; background:#3b3f46; border:1px solid #22262c; cursor:pointer; }
+    .dot{
+  appearance: none;           /* zruší defaultní vzhled tlačítek */
+  display: inline-block;      /* stabilní rozměry */
+  padding: 0;                 /* žádné vnitřní odsazení */
+  border: 1px solid #22262c;
+  background: #3b3f46;
+  cursor: pointer;
+
+  /* kruh + fix proti „natahování“ ve flex konteineru */
+  width: 10px;
+  aspect-ratio: 1 / 1;        /* zajistí přesný poměr stran 1:1 */
+  height: auto;               /* výška se řídí aspect-ratio */
+  border-radius: 50%;
+  flex: 0 0 auto;             /* zabrání roztahování ve flexu */
+  line-height: 0;             /* žádná textová výška */
+}
+.dot.active{
+  background:#e5e7eb;
+  transform:scale(1.15);
+}
     .dot.active{ background:#e5e7eb; transform:scale(1.15); }
     @media (max-width: 700px){ .layout{ flex-direction:column; } .info-pane{ max-height:none; } }
   </style>
