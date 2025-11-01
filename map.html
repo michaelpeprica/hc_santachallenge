@@ -3,68 +3,163 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mapa soutěže • Vánoční výzva 2025</title>
+  <title>Mapa soutěže (Karusel) • Vánoční výzva 2025</title>
   <link rel="stylesheet" href="./assets/css/styles.css" />
   <style>
-    /* Karusel – přizpůsobený vzhledu appky (ponecháváme tvoje proměnné/tóny) */
-    .carousel{ width:100%; display:flex; flex-direction:column; gap:12px; }
-    .layout{ display:flex; gap:16px; align-items:stretch; justify-content:center; }
-    .info-pane{
-      flex:0 0 clamp(220px, 28vw, 360px);
-      background:var(--card); border:1px solid rgba(255,255,255,.08);
-      border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:10px;
-      max-height:calc(100svh - 160px); overflow:auto; box-shadow:var(--shadow);
+    /* ==== Rozvržení jen pro tuto stránku ==== */
+    html, body { height: 100%; }
+    body { margin: 0; }
+    main {
+      /* Výšku dopočítá JS; tady jen jistota */
+      height: 100vh;
+      overflow: hidden;          /* žádný scroll celé stránky */
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px 12px 16px;
+      box-sizing: border-box;
     }
-    .info-pane h1{ margin:0; font-size:1.05rem; }
-    .info-pane p{ margin:0; color:var(--muted); line-height:1.5; }
-    .info-meta{ margin-top:auto; font-size:.85rem; opacity:.8; }
-    .viewport{
-      position:relative; overflow:hidden; border-radius:16px; background:var(--card);
-      box-shadow:var(--shadow); aspect-ratio: 2 / 3; width:100%; height:auto; touch-action:pan-y;
+
+    .layout {
+      display: flex;
+      gap: 12px;
+      flex: 1 1 auto;            /* vyplní zbytek výšky */
+      min-height: 0;             /* dovolí dětem se zmenšit bez scrollu */
     }
-    .track{ display:flex; height:100%; width:100%; transition:transform .5s ease; }
-    .slide{ min-width:100%; height:100%; position:relative; }
-    .slide figure{ margin:0; width:100%; height:100%; }
-    .slide img{ width:100%; height:100%; object-fit:contain; background:#0f1217; display:block; user-select:none; -webkit-user-drag:none; }
-    .nav{ position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; pointer-events:none; }
-    .nav .btn{ pointer-events:auto; width:42px; height:42px; border-radius:999px; background:rgba(0,0,0,.45); color:#fff; border:1px solid rgba(255,255,255,.15); display:grid; place-items:center; margin:10px; cursor:pointer; }
-    .dots{ display:flex; gap:8px; justify-content:center; align-items:center; min-height:32px; }
-    .dot{ width:10px; height:10px; border-radius:50%; background:#3b3f46; border:1px solid #22262c; cursor:pointer; }
-    .dot.active{ background:#e5e7eb; transform:scale(1.15); }
-    @media (max-width: 700px){ .layout{ flex-direction:column; } .info-pane{ max-height:none; } }
+
+    /* info panel + viewport */
+    .infoPane, .viewportWrap {
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.12);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0; /* zabrání přetékání uvnitř */
+    }
+
+    /* na užších displejích pod sebou */
+    @media (max-width: 980px) {
+      .layout { flex-direction: column; }
+      .infoPane, .viewportWrap { width: 100%; }
+    }
+
+    /* na šířku vedle sebe */
+    @media (min-width: 981px) {
+      .infoPane      { width: 36%; }
+      .viewportWrap  { width: 64%; }
+    }
+
+    /* Info panel uvnitř může scrollovat, ale jen uvnitř sebe */
+    .infoScroll {
+      overflow: auto;
+      min-height: 0;
+    }
+
+    /* ==== Viewport/slider ===== */
+    .viewport {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      border-radius: 12px;
+      overflow: hidden;        /* ořízne obraz uvnitř */
+      background: #0b1220;
+      display: grid;
+      place-items: stretch;    /* uvnitř je track na 100% */
+    }
+
+    .track {
+      display: flex;
+      height: 100%;
+      width: 100%;
+      transition: transform .35s ease;
+      will-change: transform;
+    }
+    .slide {
+      flex: 0 0 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      background: #0b1220;
+    }
+    .slide figure { 
+      margin: 0; width: 100%; height: 100%;
+    }
+    .slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;   /* výchozí: nic se neřeže, můžou být boční pruhy */
+      display: block;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    /* Dvojklik (nebo Z) přepne zaplnění rámečku */
+    .slide img.cover { object-fit: cover; }
+
+    /* Ovládací šipky */
+    .navBtns {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      pointer-events: none;
+      padding: 8px;
+    }
+    .navBtns .btn {
+      pointer-events: auto;
+      border-radius: 999px;
+      width: 46px; height: 46px;
+      display: grid; place-items: center;
+      font-size: 20px;
+      background: rgba(0,0,0,.38);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.25);
+      backdrop-filter: blur(2px);
+    }
+    .navBtns .btn:hover { background: rgba(0,0,0,.5); }
+
+    .metaRow { display:flex; gap:8px; align-items:center; justify-content:space-between; margin-top: 6px; }
+    .muted { color: var(--muted); }
+
+    /* malá mezera pod headerem, jak jsi dřív chtěl */
+    header + main { margin-top: 6px; }
   </style>
 </head>
 <body>
-  <main class="card" style="padding:16px">
-    <h2 style="margin-top:0">Mapa soutěže (karusel)</h2>
-
-    <div class="carousel" aria-label="Karusel s panelem">
-      <div class="layout" id="layout">
-        <aside class="info-pane" id="infoPane" aria-live="polite" aria-atomic="true">
-          <h1 id="title">Načítám…</h1>
-          <p id="desc" class="muted">Popisky a názvy snímků nastavuje vedoucí.</p>
-          <div class="info-meta" id="meta"></div>
-        </aside>
-
-        <div class="viewport" id="viewport">
-          <div class="track" id="track" role="list"></div>
-          <div class="nav" aria-hidden="false">
-            <button class="btn" id="prevBtn" aria-label="Předchozí snímek" title="Předchozí">❮</button>
-            <button class="btn" id="nextBtn" aria-label="Další snímek" title="Další">❯</button>
+  <main>
+    <div class="layout" id="layout">
+      <!-- Textová část / popisky -->
+      <section class="infoPane" id="infoPane" aria-label="Informace o snímku">
+        <div class="infoScroll">
+          <h2 id="title" style="margin: 0 0 6px 0;">Načítám…</h2>
+          <p id="desc" class="muted">Prosím o strpení, načítám data z Firestore.</p>
+        </div>
+        <div class="metaRow">
+          <span id="meta" class="muted">–/–</span>
+          <div class="muted" title="Tip: dvojklik/Z přepíná vyplnění">
+            Režim: <code>contain</code> / <code>cover</code>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="dots" id="dots" aria-live="polite"></div>
+      <!-- Viewport s obrázky (bez teček) -->
+      <section class="viewportWrap">
+        <div class="viewport" id="viewport" aria-live="polite">
+          <div class="track" id="track" role="list"></div>
+          <div class="navBtns">
+            <button class="btn" id="prevBtn" aria-label="Předchozí">❮</button>
+            <button class="btn" id="nextBtn" aria-label="Další">❯</button>
+          </div>
+        </div>
+      </section>
     </div>
   </main>
 
   <script type="module">
-    import { initTheme, initChrome } from './assets/js/ui.js';
-    import { guard } from './assets/js/auth-guard.js';
-    import './assets/js/map.js';    // nová logika karuselu napojená na Firestore
+    import { initTheme, initChrome } from './assets/js/ui.js?v=2025-11-01';
+    import { guard } from './assets/js/auth-guard.js?v=2025-11-01';
+    import './assets/js/map.js?v=2025-11-01';
 
-    initTheme(); initChrome();
+    initTheme();
+    initChrome();
     guard({ requireAuth: true, onReady(){} });
   </script>
 </body>
