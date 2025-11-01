@@ -41,3 +41,38 @@ main{position:relative; z-index:1; padding:16px; display:grid; gap:16px; max-wid
 #snow{position:fixed; inset:0; pointer-events:none; z-index:0}
 .hidden{display:none}
 main { margin-top: 12px; }
+/* === Theme vars for snow & bg illustration === */
+[data-theme="dark"] {
+  --snow-color: rgba(255,255,255,0.95);
+  --bg-sky:    #0b1220;
+  --bg-hill:   #111a2e;
+  --bg-hill2:  #0d1628;
+  --bg-accent: #bcd2ff; /* knoflíky/ruce sněhuláka */
+}
+
+[data-theme="light"] {
+  /* lehce tmavší sníh pro kontrast na světle */
+  --snow-color: rgba(80,100,140,0.9);
+  --bg-sky:    #eaf6ff;
+  --bg-hill:   #d9f0ff;
+  --bg-hill2:  #cfe8ff;
+  --bg-accent: #5b6b8b;
+}
+
+/* vrstvy: ilustrace pod, pak sníh, pak UI */
+.bg-illustration {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+#snow {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+header, main, footer {
+  position: relative;
+  z-index: 2;
+}
