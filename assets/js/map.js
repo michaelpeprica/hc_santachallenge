@@ -146,24 +146,59 @@ function getViewportSize(){
   const vv = window.visualViewport || null;
   const ww = vv ? vv.width  : window.innerWidth;
   const wh = vv ? vv.height : window.innerHeight;
-  const pad = 16, gap = 16;
 
+  // výšky chromu stránky
+  const headerH = (document.querySelector('header')?.offsetHeight || 0);
+  const footerH = (document.querySelector('footer')?.offsetHeight || 0);
+
+  // základní okraje uvnitř <main>
+  const pad = 16;             // padding kolem obsahu v <main>
+  const gap = 16;             // mezera mezi panelem a viewportem
+  const dotsH = 32;           // prostor pro tečky
+
+  // Celková výška, která může využít obsah stránky bez posuvu
+  const totalH = Math.max(0, wh - headerH - footerH);
+
+  // Info panel má vlastní scroll; nastavíme jeho maximální výšku
+  infoPane.style.maxHeight = Math.max(0, totalH - pad*2) + 'px';
+
+  // Dostupná výška pro samotné plátno karuselu
   let usableW = ww - pad*2;
-  let usableH = wh - pad*2 - 32; // rezerva na tečky
+  let usableH = totalH - pad*2 - dotsH;
 
+  // Pokud je layout "vedle sebe", panel neubírá výšku (jen šířku)
   if(!isStacked()){
     const paneW = infoPane.getBoundingClientRect().width || 0;
     usableW = Math.max(0, usableW - paneW - gap);
+  } else {
+    // Ve "stacku" je panel nad/below viewportem – rezervuj mu část výšky,
+    // zbytek patří viewportu karuselu (panel může scrollovat sám).
+    const reserveForPane = Math.max(140, Math.min(320, totalH * 0.35));
+    usableH = Math.max(120, usableH - reserveForPane); // zábrana propadnutí na příliš malou výšku
   }
-  const fitW = Math.min(usableW, (RATIO_W/RATIO_H)*usableH);
-  const fitH = fitW * (RATIO_H/RATIO_W);
-  return {width: Math.round(fitW), height: Math.round(fitH)};
+
+  // Udrž poměr 2:3 a vejdeme se do usable boxu
+  const fitW = Math.min(usableW, (RATIO_W/RATIO_H) * usableH);
+  const fitH = Math.min(usableH, (RATIO_H/RATIO_W) * usableW);
+
+  return { width: Math.round(fitW), height: Math.round(fitH), totalH };
 }
+
 function resizeViewport(){
-  const {width, height} = getViewportSize();
+  const {width, height, totalH} = getViewportSize();
+
+  // Velikost samotného viewportu (plátna se slidy)
   viewport.style.width  = width + "px";
   viewport.style.height = height + "px";
+
+  // Nastav i výšku <main>, aby celá stránka byla přesně na výšku okna
+  const main = document.querySelector('main');
+  if(main){
+    main.style.height = totalH + "px";
+    main.style.boxSizing = 'border-box';
+  }
 }
+
 const ro = new ResizeObserver(resizeViewport);
 ro.observe(document.body); ro.observe(infoPane);
 if(window.visualViewport){
