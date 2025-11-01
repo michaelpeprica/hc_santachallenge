@@ -154,7 +154,7 @@ function getViewportSize(){
   // základní okraje uvnitř <main>
   const pad = 16;             // padding kolem obsahu v <main>
   const gap = 16;             // mezera mezi panelem a viewportem
-  const dotsH = 32;           // prostor pro tečky
+  const dotsH = 40;           // prostor pro tečky
 
   // Celková výška, která může využít obsah stránky bez posuvu
   const totalH = Math.max(0, wh - headerH - footerH);
