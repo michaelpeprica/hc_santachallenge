@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard • Vánoční výzva 2025</title>
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <main>
+    <section id="weekInfoSection" class="card">
+      <h2>Tento týden</h2>
+      <div id="weekInfoTextView" class="muted"></div>
+      <div id="weekInfoActivities" class="stack"></div>
+    </section>
+
+    <section id="operatorSection" class="card" aria-hidden="true">
+      <h2>Moje aktivity</h2>
+      <div class="stack">
+        <div class="row">
+          <select id="targetOperator" class="input hidden" style="max-width:280px"></select>
+          <select id="activitySelect" class="input" style="max-width:420px"></select>
+          <input type="number" id="customDelta" class="input" placeholder="Vlastní počet (±)" style="max-width:180px" />
+          <button class="btn" id="addPointsBtn" disabled>Přidat/Odebrat body</button>
+        </div>
+        <p class="muted" id="roleInfo"></p>
+        <div id="myRecent" class="stack"></div>
+      </div>
+    </section>
+
+    <section id="leaderboardSection" class="card">
+      <h2>Žebříček</h2>
+      <div class="row muted" style="justify-content:space-between">
+        <div>Body = nasbírané dárky 🎁</div>
+        <div id="milestoneLegend"></div>
+      </div>
+      <div id="leaderboard" class="stack"></div>
+    </section>
+
+    <!-- modály -->
+    <section id="milestonesModal" class="card hidden" style="position:fixed; right:16px; top:64px; z-index:10; max-width:420px">
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <h2 style="margin:0">Hodnosti</h2>
+        <button class="btn small ghost" id="closeMilestonesModal">Zavřít</button>
+      </div>
+      <div id="milestonesPublicList" class="stack"></div>
+    </section>
+
+    <section id="avatarModal" class="card hidden" style="position:fixed; right:16px; top:64px; z-index:30; max-width:520px">
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <h2 style="margin:0">Vyber profilový obrázek</h2>
+        <button class="btn small ghost" id="closeAvatarModal">Zavřít</button>
+      </div>
+      <div class="muted">Pokud žádný nevybereš, budou se zobrazovat iniciály s barvou.</div>
+      <div id="avatarGrid" class="row" style="flex-wrap:wrap; gap:10px; margin-top:10px"></div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initTheme, initChrome } from './assets/js/ui.js';
+    import { guard } from './assets/js/auth-guard.js';
+    import './assets/js/dashboard.js';
+
+    initTheme(); initChrome();
+    guard({ requireAuth: true, onReady(){ /* dashboard.js si vše zainicializuje */ }});
+  </script>
+</body>
+</html>
