@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hodnosti • Vánoční výzva 2025</title>
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <style>
+    /* jednoduchá mřížka na karty hodností */
+    .ranks-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); }
+    .rank-card{ display:flex; flex-direction:column; gap:10px; align-items:flex-start }
+    .rank-media{
+      width:100%; aspect-ratio: 4 / 3; border-radius:14px; overflow:hidden;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.15));
+      display:grid; place-items:center;
+    }
+    .rank-media img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .rank-title{ font-weight:800; font-size:1.05rem }
+    .rank-meta{ color:var(--muted); font-size:.9rem }
+    .rank-secret{ font-weight:700; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card">
+      <h2 style="margin-top:0">Hodnosti</h2>
+      <p class="muted">Zobrazují se všechny hodnosti. Ty, které jsou skryté, se ukáží jako „Tajné“ s ilustračním obrázkem.</p>
+      <div id="ranksGrid" class="ranks-grid"></div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initTheme, initChrome } from './assets/js/ui.js';
+    import { guard } from './assets/js/auth-guard.js';
+    import './assets/js/ranks.js';
+
+    initTheme(); initChrome();
+    guard({ requireAuth: true, onReady(){} });
+  </script>
+</body>
+</html>
