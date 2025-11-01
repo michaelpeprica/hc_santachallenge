@@ -20,8 +20,9 @@ function renderHeader(){
       <h1>Vánoční výzva 2025</h1>
     </div>
     <nav>
+      <a class="btn small" href="./dashboard.html" title="Přehled">📊 Přehled</a>
+      <a class="btn small" href="./ranks.html" title="Hodnosti">🏆 Hodnosti</a>
       <a class="btn small" href="./map.html" title="Mapa">🗺️ Mapa</a>
-      <a class="btn small" href="./dashboard.html" title="Leaderboard">🏆 Hodnosti</a>
       <a class="btn small" href="./manager.html" title="Nastavení">🛠️ Vedoucí</a>
       <button class="btn small" id="themeToggle" title="Přepnout téma">🌓 Téma</button>
       <span id="accountInfo" class="account"></span>
