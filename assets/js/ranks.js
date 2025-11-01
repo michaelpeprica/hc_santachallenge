@@ -28,17 +28,18 @@ async function loadBase(){
   // načti hodnosti
   const qMs = query(collection(db,'milestones'), orderBy('threshold'));
   const snap = await getDocs(qMs);
-  const items = [];
-  snap.forEach(d=>{
-    const data = d.data();
-    items.push({
-      id: d.id,
-      threshold: Number(data.threshold||0),
-      label: data.label || '',
-      reward: data.reward || '',
-      visible: data.visible !== false // default true
-    });
+const items = [];
+snap.forEach(d=>{
+  const data = d.data();
+  items.push({
+    id: d.id,
+    threshold: Number(data.threshold||0),
+    label: data.label || '',
+    reward: data.reward || '',
+    visible: data.visible !== false,          // default: true
+    image: (data.image || '').trim() || null  // <— přidáno
   });
+});
 
   grid.innerHTML = '';
   if(!items.length){
@@ -52,18 +53,24 @@ async function loadBase(){
 
     // horní obrázek / tajná „placka“
     const media = document.createElement('div'); media.className='rank-media';
-    if(m.visible){
-      // viditelná hodnost – obrázek není povinný, takže necháme jen jednolitý podklad
-      // (pokud bys chtěl přidat vlastní obrázky pro viditelné hodnosti, snadno rozšíříme o pole "image" v dokumentu)
-      media.innerHTML = `<div class="muted">Bez obrázku</div>`;
-    } else {
-      // skrytá = "Tajné" + obrázek secret_rank
-      if(baseUrl){
-        const img = smartImg(baseUrl, 'secret_rank');
-        media.innerHTML = ''; media.appendChild(img);
-      } else {
-        media.innerHTML = `<div class="muted">Nahraj obrázek 'secret_rank' na GitHub a nastav base_url v settings/ranks_images</div>`;
-      }
+if(m.visible){
+  // viditelná hodnost — pokud je nastaven image a baseUrl, načti obrázek
+  if(baseUrl && m.image){
+    const img = smartImg(baseUrl, m.image);
+    media.innerHTML = ''; 
+    media.appendChild(img);
+  } else {
+    media.innerHTML = `<div class="muted">Bez obrázku</div>`;
+  }
+} else {
+  // skrytá = "Tajné" + obrázek secret_rank
+  if(baseUrl){
+    const img = smartImg(baseUrl, 'secret_rank');
+    media.innerHTML = ''; media.appendChild(img);
+  } else {
+    media.innerHTML = `<div class="muted">Nahraj 'secret_rank' na GitHub a nastav base_url v settings/ranks_images</div>`;
+  }
+}
     }
 
     // texty
