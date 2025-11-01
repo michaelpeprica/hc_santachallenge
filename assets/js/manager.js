@@ -80,14 +80,6 @@ addActivity?.addEventListener('click', async ()=>{
 });
 
 // === Milestones ===
-const msThreshold = document.getElementById('msThreshold');
-const msLabel = document.getElementById('msLabel');
-const msReward = document.getElementById('msReward');
-const msImage = document.getElementById('msImage');
-const msVisible = document.getElementById('msVisible');
-const addMilestone = document.getElementById('addMilestone');
-const milestonesList = document.getElementById('milestonesList');
-
 async function subscribeMilestones(){
   const qMs = query(collection(db,'milestones'), orderBy('threshold'));
   onSnapshot(qMs, (snap)=>{
