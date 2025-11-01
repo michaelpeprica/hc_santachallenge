@@ -113,3 +113,45 @@ header, main, footer {
   margin-right: 10px;
   filter: drop-shadow(0 0 3px rgba(0,0,0,0.25));
 }
+/* === Avatary === */
+.avatar {
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:50%; overflow:hidden; user-select:none;
+  box-shadow:0 1px 2px rgba(0,0,0,.25);
+}
+.avatar-sm { width:28px; height:28px; font-size:.8rem; }
+.avatar-md { width:40px; height:40px; font-size:1rem; }
+.avatar-lg { width:72px; height:72px; font-size:1.2rem; }
+.avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+.avatar-initials {
+  width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+  font-weight:800; color:#fff; letter-spacing:.5px;
+  text-shadow:0 1px 2px rgba(0,0,0,.25);
+}
+
+/* Kontejner avatáru u účtu v headeru */
+.account { display:inline-flex; align-items:center; gap:8px; }
+
+/* === Modal – výběr avataru === */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50;
+  display:flex; align-items:center; justify-content:center; padding:16px;
+}
+.modal{
+  width:min(900px, 96vw); max-height:90vh; overflow:auto;
+  background:var(--card); border-radius:16px; padding:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+.modal .grid{
+  display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(110px,1fr));
+}
+.modal .cell{ display:flex; flex-direction:column; gap:8px; align-items:center }
+.modal .thumb{
+  width:110px; height:110px; border-radius:999px; overflow:hidden;
+  border:2px solid transparent; cursor:pointer;
+  transition:transform .15s ease, border-color .15s ease;
+}
+.modal .thumb:hover{ transform:scale(1.03); }
+.modal .thumb.selected{ border-color:#4da3ff; }
+.modal .actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px }
+
