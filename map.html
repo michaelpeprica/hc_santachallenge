@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mapa soutěže • Vánoční výzva 2025</title>
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <main class="card" style="max-width:900px; margin:24px auto; text-align:center">
+    <h2>Mapa soutěže</h2>
+    <div id="mapWrap">Načítám…</div>
+  </main>
+
+  <script type="module">
+    import { initTheme, initChrome } from './assets/js/ui.js';
+    import { guard } from './assets/js/auth-guard.js';
+    import './assets/js/map.js';
+
+    initTheme(); initChrome();
+    guard({ requireAuth: true, onReady(){} });
+  </script>
+</body>
+</html>
