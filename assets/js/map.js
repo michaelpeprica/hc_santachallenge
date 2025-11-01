@@ -4,94 +4,92 @@ import {
   doc, getDoc, collection, getDocs, query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-// --- DOM ---
-const track = document.getElementById("track");
-const dotsWrap = document.getElementById("dots");
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
+/* ===== DOM ===== */
+const track    = document.getElementById("track");
+const prevBtn  = document.getElementById("prevBtn");
+const nextBtn  = document.getElementById("nextBtn");
 const viewport = document.getElementById("viewport");
 const infoPane = document.getElementById("infoPane");
-const titleEl = document.getElementById("title");
-const descEl  = document.getElementById("desc");
-const metaEl  = document.getElementById("meta");
-const layoutEl= document.getElementById("layout");
+const titleEl  = document.getElementById("title");
+const descEl   = document.getElementById("desc");
+const metaEl   = document.getElementById("meta");
+const layoutEl = document.getElementById("layout");
 
-// --- Načtení konfigurace a metadat snímků ---
+/* ===== Stav ===== */
+let slides = []; // { title, desc, base }
+let index  = 0;
+let total  = 0;
+
+/* ===== Firestore: config & metadata ===== */
 async function loadConfig(){
-  const s = await getDoc(doc(db,'settings','carousel'));
-  const base_url = s.exists() ? (s.data().base_url || '') : '';
-  const count = s.exists() ? Number(s.data().count || 0) : 0;
-  return { base_url: base_url.replace(/\/$/,''), count: Math.max(0, count|0) };
+  try{
+    const s = await getDoc(doc(db,'settings','carousel'));
+    if(!s.exists()){
+      console.warn('[carousel] settings/carousel neexistuje.');
+      return { base_url: '', count: 0 };
+    }
+    const base_url = (s.data().base_url || '').replace(/\/$/, '');
+    const count    = Number(s.data().count || 0) | 0;
+    return { base_url, count: Math.max(0, count) };
+  }catch(e){
+    console.error('[carousel] Chyba settings/carousel:', e);
+    return { base_url: '', count: 0 };
+  }
 }
 
 async function loadSlidesMeta(count){
-  // Čteme dokumenty carousel/{index} – index = 1..count (volitelně můžeš mít i méně)
   const metas = Array.from({length: count}, (_,i)=>({ title:`Snímek ${i+1}`, desc:'' }));
-  // Podpora: pokud bys místo indexů vytvořil manuální doky s polem "index",
-  // dá se použít query(collection(db,'carousel'), orderBy('index')) a mapnout.
-  const snap = await getDocs(query(collection(db,'carousel'), orderBy('__name__')));
-  snap.forEach(d=>{
-    // očekáváme id jako "1","2"... nebo "P1" – zkusíme vyparsovat číslo
-    const m = d.id.match(/\d+/); if(!m) return;
-    const idx = (parseInt(m[0],10) || 0) - 1;
-    if(idx>=0 && idx<metas.length){
-      metas[idx] = {
-        title: d.data().title || metas[idx].title,
-        desc:  d.data().desc  || metas[idx].desc
-      };
-    }
-  });
+  try{
+    const snap = await getDocs(query(collection(db,'carousel'), orderBy('__name__')));
+    snap.forEach(d=>{
+      const m = d.id.match(/\d+/); if(!m) return;
+      const idx = (parseInt(m[0],10)||0) - 1;
+      if(idx>=0 && idx<metas.length){
+        const data = d.data();
+        metas[idx] = {
+          title: data.title || metas[idx].title,
+          desc:  data.desc  || metas[idx].desc,
+        };
+      }
+    });
+  }catch(e){
+    console.warn('[carousel] Nelze načíst meta z kolekce carousel:', e);
+  }
   return metas;
 }
 
-// --- Obrázky z GitHubu: base_url/P{N}.{ext} ---
-const extCandidates = ["jpg","jpeg","png","webp"];
+/* ===== Loader obrázků (zkouší přípony) ===== */
+const EXT = ["jpg","jpeg","png","webp","JPG","JPEG","PNG","WEBP"];
 function createSmartImage(fullBase){
   const img=new Image();
-  img.decoding="async"; img.loading="lazy"; img.alt="Obrázek";
-  let i=0, used=false;
+  img.decoding="async"; img.loading="lazy"; img.alt="Snímek";
+  let i = 0, placed = false;
   function tryNext(){
-    if(i<extCandidates.length){ img.src=`${fullBase}.${extCandidates[i++]}`; }
-    else if(!used){ used=true; img.src=placeholderDataURI; }
+    if(i < EXT.length){
+      img.src = `${fullBase}.${EXT[i++]}`;
+    } else if(!placed){
+      placed = true;
+      // když nic, necháme prázdno – ale nepadáme
+      console.warn('[carousel] Obrázek nenalezen pro', fullBase);
+    }
   }
-  img.addEventListener("error", tryNext);
-  tryNext();
-  return img;
+  img.addEventListener('error', tryNext);
+  // režim cover přepínatelný dvojklikem / Z
+  img.addEventListener('dblclick', ()=> img.classList.toggle('cover'));
+  return (tryNext(), img);
 }
-const placeholderDataURI = (() => {
-  const w=1024, h=1536;
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1f2937"/><stop offset="100%" stop-color="#0f172a"/></linearGradient></defs>
-    <rect width="100%" height="100%" fill="url(#g)"/>
-    <g fill="#e5e7eb" text-anchor="middle">
-      <text x="${w/2}" y="${h/2-12}" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="36" font-weight="700">Není k dispozici</text>
-      <text x="${w/2}" y="${h/2+26}" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="24" opacity="0.8">Přidejte obrázek do GitHubu</text>
-    </g></svg>`;
-  return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
-})();
 
-// --- Karusel stav ---
-let slides = []; // {title, desc, base}  base= `${base_url}/P{i+1}`
-let index=0; let total=0;
-
+/* ===== Render ===== */
 function renderSlides(){
-  track.innerHTML=''; dotsWrap.innerHTML='';
-  slides.forEach((s, idx)=>{
-    const li = document.createElement("div");
-    li.className="slide"; li.setAttribute("role","listitem");
-
-    const fig=document.createElement("figure");
-    const img=createSmartImage(s.base);
+  track.innerHTML = '';
+  slides.forEach(s=>{
+    const li  = document.createElement("div");
+    li.className = "slide"; li.setAttribute("role","listitem");
+    const fig = document.createElement("figure");
+    const img = createSmartImage(s.base);
     fig.appendChild(img);
     li.appendChild(fig);
     track.appendChild(li);
-
-    const dot=document.createElement("button");
-    dot.className="dot";
-    dot.setAttribute("aria-label",`Přejít na snímek ${idx+1}`);
-    dot.addEventListener("click",()=>goTo(idx));
-    dotsWrap.appendChild(dot);
   });
   total = slides.length;
   index = Math.min(index, Math.max(0,total-1));
@@ -101,33 +99,37 @@ function renderSlides(){
 function update(){
   if(total===0){
     titleEl.textContent = 'Žádné snímky';
-    descEl.textContent  = 'Nastav v sekci Vedoucí → Karusel.';
+    descEl.textContent  = 'V manageru nastavte base_url a count (settings/carousel). Poté nahrajte P1..PN do GitHubu.';
     metaEl.textContent  = '';
     track.style.transform = 'translateX(0)';
-    dotsWrap.innerHTML='';
     return;
   }
   track.style.transform = `translateX(${-index*100}%)`;
-  [...dotsWrap.children].forEach((d,i)=>{
-    d.classList.toggle("active", i===index);
-    d.setAttribute("aria-current", i===index ? "true" : "false");
-  });
   const s = slides[index];
   titleEl.textContent = s.title || `Snímek ${index+1}`;
   descEl.textContent  = s.desc  || '';
-  metaEl.textContent  = `Snímek ${index+1} / ${total}`;
+  metaEl.textContent  = `${index+1} / ${total}`;
   document.title = `${s.title || `Snímek ${index+1}`} – Karusel`;
 }
-function goTo(i){ index=(i+total)%total; update(); }
-function next(){ goTo(index+1); }
-function prev(){ goTo(index-1); }
 
-prevBtn.addEventListener("click", prev);
-nextBtn.addEventListener("click", next);
-addEventListener("keydown", e=>{ if(e.key==="ArrowRight") next(); if(e.key==="ArrowLeft")  prev(); });
+function goTo(i){ if(total===0) return; index=(i+total)%total; update(); }
+const next = ()=> goTo(index+1);
+const prev = ()=> goTo(index-1);
 
-// Swipe
+/* ===== Ovládání ===== */
+prevBtn?.addEventListener("click", prev);
+nextBtn?.addEventListener("click", next);
+addEventListener("keydown", e=>{
+  if(e.key==="ArrowRight") next();
+  if(e.key==="ArrowLeft")  prev();
+  if(e.key && e.key.toLowerCase()==="z"){
+    const curImg = track.querySelectorAll('.slide img')[index];
+    if(curImg) curImg.classList.toggle('cover');
+  }
+});
+// jednoduchý swipe
 (function enableSwipe(el){
+  if(!el) return;
   let x0=null;
   el.addEventListener("pointerdown", e=>x0=e.clientX, {passive:true});
   el.addEventListener("pointerup", e=>{
@@ -139,44 +141,68 @@ addEventListener("keydown", e=>{ if(e.key==="ArrowRight") next(); if(e.key==="Ar
   el.addEventListener("pointercancel", ()=>x0=null);
 })(viewport);
 
-// Layout fit (2:3) – stejné chování jako v původním karuselu
-const RATIO_W=2, RATIO_H=3;
-function isStacked(){ return getComputedStyle(layoutEl).flexDirection === "column"; }
-function getViewportSize(){
+/* ===== Rozměry bez scrollu (výška okna – header – footer) ===== */
+function resizeViewport(){
   const vv = window.visualViewport || null;
   const ww = vv ? vv.width  : window.innerWidth;
   const wh = vv ? vv.height : window.innerHeight;
-  const pad = 16, gap = 16;
 
-  let usableW = ww - pad*2;
-  let usableH = wh - pad*2 - 32; // rezerva na tečky
+  const headerH = (document.querySelector('header')?.offsetHeight || 0);
+  const footerH = (document.querySelector('footer')?.offsetHeight || 0);
 
-  if(!isStacked()){
-    const paneW = infoPane.getBoundingClientRect().width || 0;
-    usableW = Math.max(0, usableW - paneW - gap);
-  }
-  const fitW = Math.min(usableW, (RATIO_W/RATIO_H)*usableH);
-  const fitH = fitW * (RATIO_H/RATIO_W);
-  return {width: Math.round(fitW), height: Math.round(fitH)};
-}
-function resizeViewport(){
-  const {width, height} = getViewportSize();
-  viewport.style.width  = width + "px";
-  viewport.style.height = height + "px";
+  const main = document.querySelector('main');
+  if(!main) return;
+
+  // celkový prostor pro hlavní obsah (bez scrollu)
+  const totalH = Math.max(0, wh - headerH - footerH);
+  main.style.height = totalH + "px";
+  main.style.boxSizing = 'border-box';
+  main.style.overflow = 'hidden';
+
+  // info panel může uvnitř scrollovat, ale nevyjede ven
+  const cs = getComputedStyle(main);
+  const padTop = parseFloat(cs.paddingTop)||0;
+  const padBottom = parseFloat(cs.paddingBottom)||0;
+
+  const infoMax = Math.max(0, totalH - padTop - padBottom);
+  const infoScroll = infoPane?.querySelector('.infoScroll');
+  if(infoScroll) infoScroll.style.maxHeight = infoMax + 'px';
 }
 const ro = new ResizeObserver(resizeViewport);
-ro.observe(document.body); ro.observe(infoPane);
+ro.observe(document.body);
+const headerEl = document.querySelector('header');
+const footerEl = document.querySelector('footer');
+if(headerEl) ro.observe(headerEl);
+if(footerEl) ro.observe(footerEl);
 if(window.visualViewport){
   visualViewport.addEventListener('resize', resizeViewport);
   visualViewport.addEventListener('scroll', resizeViewport);
 }
 window.addEventListener('orientationchange', ()=>setTimeout(resizeViewport, 50));
 
-// Init
+/* ===== INIT ===== */
 (async function init(){
-  resizeViewport();
-  const { base_url, count } = await loadConfig();
-  const meta = await loadSlidesMeta(count);
-  slides = meta.map((m, i)=>({ title: m.title, desc: m.desc, base: `${base_url}/P${i+1}` }));
-  renderSlides();
+  try{
+    resizeViewport();
+
+    const { base_url, count } = await loadConfig();
+    if(!count || count<1){
+      slides = [];
+      renderSlides();
+      return;
+    }
+
+    const meta = await loadSlidesMeta(count);
+    slides = meta.map((m, i)=>({
+      title: m.title,
+      desc:  m.desc,
+      base:  base_url ? `${base_url}/P${i+1}` : ''  // P1..PN.(ext)
+    }));
+
+    renderSlides();
+  }catch(e){
+    console.error('[carousel] Nezpracovaná chyba při initu:', e);
+    slides = [];
+    renderSlides();
+  }
 })();
