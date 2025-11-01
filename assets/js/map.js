@@ -147,55 +147,60 @@ function getViewportSize(){
   const ww = vv ? vv.width  : window.innerWidth;
   const wh = vv ? vv.height : window.innerHeight;
 
-  // výšky chromu stránky
+  // skutečné výšky chromu stránky
   const headerH = (document.querySelector('header')?.offsetHeight || 0);
   const footerH = (document.querySelector('footer')?.offsetHeight || 0);
 
-  // základní okraje uvnitř <main>
-  const pad = 16;             // padding kolem obsahu v <main>
-  const gap = 16;             // mezera mezi panelem a viewportem
-  const dotsH = 40;           // prostor pro tečky
+  const main = document.querySelector('main');
+  const cs = main ? getComputedStyle(main) : null;
+  const padTop = cs ? parseFloat(cs.paddingTop)||0 : 16;
+  const padBottom = cs ? parseFloat(cs.paddingBottom)||0 : 16;
+  const gap = 16;
 
-  // Celková výška, která může využít obsah stránky bez posuvu
+  // skutečná výška řady s tečkami
+  const dotsEl = document.getElementById('dots');
+  const dotsH = (dotsEl?.offsetHeight || 36); // musí odpovídat CSS .dots{height:36px}
+
+  // Celkový prostor pro obsah karty
   const totalH = Math.max(0, wh - headerH - footerH);
 
-  // Info panel má vlastní scroll; nastavíme jeho maximální výšku
-  infoPane.style.maxHeight = Math.max(0, totalH - pad*2) + 'px';
+  // Info panel – maximální výška určíme mimo stacked režim níže
+  // (v stacked režimu volíme rezervu níže)
+  // Dostupné rozměry pro karusel (layout+viewport)
+  let usableW = ww - parseFloat(cs?.paddingLeft||'16') - parseFloat(cs?.paddingRight||'16');
+  let usableH = totalH - padTop - padBottom - dotsH;
 
-  // Dostupná výška pro samotné plátno karuselu
-  let usableW = ww - pad*2;
-  let usableH = totalH - pad*2 - dotsH;
-
-  // Pokud je layout "vedle sebe", panel neubírá výšku (jen šířku)
   if(!isStacked()){
+    // vedle sebe: panel ubírá šířku, ne výšku
     const paneW = infoPane.getBoundingClientRect().width || 0;
     usableW = Math.max(0, usableW - paneW - gap);
+    // info panel může mít max-height = vše nad tečkami
+    infoPane.style.maxHeight = Math.max(0, totalH - padTop - padBottom - dotsH) + 'px';
   } else {
-    // Ve "stacku" je panel nad/below viewportem – rezervuj mu část výšky,
-    // zbytek patří viewportu karuselu (panel může scrollovat sám).
-    const reserveForPane = Math.max(140, Math.min(320, totalH * 0.35));
-    usableH = Math.max(120, usableH - reserveForPane); // zábrana propadnutí na příliš malou výšku
+    // stacked: panel nad/po viewportu – rezervuj panelu výšku, viewport dostane zbytek
+    const reserveForPane = Math.max(140, Math.min(320, (totalH - padTop - padBottom - dotsH) * 0.38));
+    usableH = Math.max(120, usableH - reserveForPane);
+    infoPane.style.maxHeight = Math.max(0, totalH - padTop - padBottom - dotsH - 8) + 'px';
   }
 
-  // Udrž poměr 2:3 a vejdeme se do usable boxu
+  // Udrž poměr 2:3 a vejdi se do usable boxu
   const fitW = Math.min(usableW, (RATIO_W/RATIO_H) * usableH);
   const fitH = Math.min(usableH, (RATIO_H/RATIO_W) * usableW);
 
   return { width: Math.round(fitW), height: Math.round(fitH), totalH };
 }
-
 function resizeViewport(){
   const {width, height, totalH} = getViewportSize();
-
-  // Velikost samotného viewportu (plátna se slidy)
   viewport.style.width  = width + "px";
   viewport.style.height = height + "px";
 
-  // Nastav i výšku <main>, aby celá stránka byla přesně na výšku okna
   const main = document.querySelector('main');
   if(main){
     main.style.height = totalH + "px";
     main.style.boxSizing = 'border-box';
+    // volitelné, ale pomáhá: ať vnitřní .carousel umí vyplnit výšku
+    main.style.display = 'flex';
+    main.style.flexDirection = 'column';
   }
 }
 
