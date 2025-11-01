@@ -96,6 +96,27 @@ function renderSlides(){
   update();
 }
 
+// --- Markdown parser (základní, bezpečný, bez externích knihoven) ---
+function mdToHtml(md){
+  if(!md) return '';
+  let html = md
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/\*\*(.*?)\*\*/g,"<b>$1</b>")
+    .replace(/\*(.*?)\*/g,"<i>$1</i>")
+    .replace(/__(.*?)__/g,"<u>$1</u>")
+    .replace(/`(.*?)`/g,"<code>$1</code>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s]+)\)/g,'<a href="$2" target="_blank">$1</a>')
+    .replace(/^> (.*)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/^- (.*)$/gm,'<li>$1</li>')
+    .replace(/\n{2,}/g,'</p><p>')
+    .replace(/\n/g,'<br>');
+  // seznamy
+  html = html.replace(/(<li>.*<\/li>)/gs,'<ul>$1</ul>');
+  // zabal do <p>
+  return `<p>${html}</p>`;
+}
+
+// --- Aktualizace karuselu s markdown popisky ---
 function update(){
   if(total===0){
     titleEl.textContent = 'Žádné snímky';
@@ -107,10 +128,11 @@ function update(){
   track.style.transform = `translateX(${-index*100}%)`;
   const s = slides[index];
   titleEl.textContent = s.title || `Snímek ${index+1}`;
-  descEl.textContent  = s.desc  || '';
+  descEl.innerHTML    = mdToHtml(s.desc || '');
   metaEl.textContent  = `${index+1} / ${total}`;
   document.title = `${s.title || `Snímek ${index+1}`} – Karusel`;
 }
+
 
 function goTo(i){ if(total===0) return; index=(i+total)%total; update(); }
 const next = ()=> goTo(index+1);
