@@ -8,12 +8,14 @@
   <style>
     /* Karusel – přizpůsobený vzhledu appky (ponecháváme tvoje proměnné/tóny) */
     .carousel{ width:100%; display:flex; flex-direction:column; gap:12px; }
+    .carousel-page{ overflow: hidden; }  /* stránka sama se neposouvá */
     .layout{ display:flex; gap:16px; align-items:stretch; justify-content:center; }
     .info-pane{
       flex:0 0 clamp(220px, 28vw, 360px);
       background:var(--card); border:1px solid rgba(255,255,255,.08);
       border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:10px;
       max-height:calc(100svh - 160px); overflow:auto; box-shadow:var(--shadow);
+      overflow: auto;
     }
     .info-pane h1{ margin:0; font-size:1.05rem; }
     .info-pane p{ margin:0; color:var(--muted); line-height:1.5; }
@@ -53,7 +55,7 @@
     @media (max-width: 700px){ .layout{ flex-direction:column; } .info-pane{ max-height:none; } }
   </style>
 </head>
-<body>
+<body class="carousel-page">
   <main class="card" style="padding:16px; margin-top:12px">
     <h2 style="margin-top:0">Mapa soutěže (karusel)</h2>
 
