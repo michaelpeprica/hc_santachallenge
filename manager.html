@@ -12,6 +12,7 @@
       <button class="tab active" data-tab="cfg-activities">Aktivity</button>
       <button class="tab" data-tab="cfg-milestones">Hodnosti</button>
       <button class="tab" data-tab="cfg-roles">Operátoři</button>
+      <button class="tab" data-tab="cfg-carousel">Karusel</button>
       <button class="tab" data-tab="cfg-utils">Nástroje</button>
     </div>
 
@@ -59,6 +60,20 @@
       <p class="muted">Role se ukládají do <code>roles/{uid}</code>. Jméno do <code>operators/{uid}.displayName</code>.</p>
       <div id="rolesList" class="stack" style="margin-top:8px"></div>
     </section>
+
+    <section id="cfg-carousel" class="card tabpanel hidden">
+  <h2>Karusel – obrázky a popisky</h2>
+  <div class="stack" style="margin-bottom:12px">
+    <div class="row" style="flex-wrap:wrap; gap:8px">
+      <input id="carBaseUrl" class="input" placeholder="Base URL na GitHubu (bez lomítka na konci), např. https://raw.githubusercontent.com/.../main/images" />
+      <input id="carCount" class="input" type="number" placeholder="Počet snímků (N)" style="max-width:160px" />
+      <button class="btn" id="carSaveCfg">Uložit nastavení</button>
+    </div>
+    <div class="muted">Souborové názvy: <code>P1..PN</code> s příponami <code>.jpg/.jpeg/.png/.webp</code> (zkouší se automaticky).</div>
+  </div>
+
+  <div id="carSlidesForm" class="stack"></div>
+</section>
 
     <section id="cfg-utils" class="card tabpanel hidden">
       <h2>Nástroje</h2>
