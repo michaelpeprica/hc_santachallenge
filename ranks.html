@@ -38,7 +38,12 @@
   object-fit: cover;
   display: block;
 }
-
+/* rozmazaný náhled pro tajné hodnosti */
+.rank-media.blurred img{
+  filter: blur(12px) brightness(0.75);
+  transform: scale(1.05);
+  transform-origin: center;
+}
     .rank-title{ font-weight:800; font-size:1.05rem }
     .rank-meta{ color:var(--muted); font-size:.9rem }
     .rank-secret{ font-weight:700; }
