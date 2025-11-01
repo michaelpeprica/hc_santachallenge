@@ -103,8 +103,9 @@ async function subscribeMilestones(){
         const lb = row.querySelector(`[data-ms-lb="${m.id}"]`).value.trim();
         const rw = row.querySelector(`[data-ms-rw="${m.id}"]`).value.trim();
         const vs = !!row.querySelector(`[data-ms-vs="${m.id}"]`).checked;
+        const im = row.querySelector(`[data-ms-img="${m.id}"]`)?.value.trim() || '';
         if(!Number.isFinite(th)) return alert('Zadejte platný práh.');
-        await updateDoc(doc(db,'milestones', m.id), { threshold: th, label: lb, reward: rw, visible: vs });
+        await updateDoc(doc(db,'milestones', m.id), { threshold: th, label: lb, reward: rw, visible: vs, image: im });
       });
     });
   });
