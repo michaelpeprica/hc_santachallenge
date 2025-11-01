@@ -107,6 +107,8 @@ function renderSlides(){
     li.className = "slide"; li.setAttribute("role","listitem");
     const fig = document.createElement("figure");
     const img = createSmartImage(s.base);
+    // dvojklik přepíná contain/cover (volitelné)
+    img.addEventListener('dblclick', ()=> img.classList.toggle('cover'));
     fig.appendChild(img);
     li.appendChild(fig);
     track.appendChild(li);
