@@ -37,6 +37,7 @@
         <input id="msThreshold" class="input" type="number" placeholder="Počet dárků"/>
         <input id="msLabel" class="input" placeholder="Označení (badge)"/>
         <input id="msReward" class="input" placeholder="Výhra (volitelné)"/>
+        <input class="input" data-ms-img="${m.id}" placeholder="Obrázek (bez přípony, např. rank_01)" value="${m.image || ''}" style="flex:1; min-width:180px"/>
         <label class="row" style="gap:6px"><input type="checkbox" id="msVisible" checked /> Viditelný</label>
         <button class="btn" id="addMilestone">Přidat milník</button>
       </div>
