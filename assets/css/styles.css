@@ -40,3 +40,4 @@ main{position:relative; z-index:1; padding:16px; display:grid; gap:16px; max-wid
   linear-gradient(to top, #0b1330 0%, transparent 60%); }
 #snow{position:fixed; inset:0; pointer-events:none; z-index:0}
 .hidden{display:none}
+main { margin-top: 12px; }
