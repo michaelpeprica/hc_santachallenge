@@ -15,7 +15,16 @@ function renderHeader(){
   const header = document.createElement('header');
   header.innerHTML = `
     <div class="brand">
-      <div class="logo" aria-hidden="true">☄️</div>
+      <img src="./assets/hc_logo.png" 
+           alt="Home Credit" 
+           class="logo" 
+           id="hcLogo"
+           onerror="this.onerror=null;
+                    const exts=['jpg','jpeg','webp'];
+                    for(let i=0;i<exts.length;i++){
+                      const test='./assets/hc_logo.'+exts[i];
+                      fetch(test).then(r=>{if(r.ok){this.src=test;throw 'break';}});
+                    }" />
       <h1>Vánoční výzva 2025</h1>
     </div>
     <nav>
@@ -32,11 +41,11 @@ function renderHeader(){
 
   document.getElementById('themeToggle')?.addEventListener('click', ()=>{
     const next = document.body.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
-    applyTheme(next);
+    document.body.setAttribute('data-theme', next);
+    localStorage.setItem('xx_theme', next);
   });
   document.getElementById('signOutBtn')?.addEventListener('click', ()=> signOut(auth));
 
-  // zvýraznění aktivní stránky
   const path = location.pathname.split('/').pop() || 'index.html';
   for(const a of header.querySelectorAll('a.btn')) {
     if (a.getAttribute('href') === `./${path}`) a.classList.add('active');
