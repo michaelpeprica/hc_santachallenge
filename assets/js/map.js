@@ -1,16 +1,182 @@
 // assets/js/map.js
 import { db } from './firebase.js';
-import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {
+  doc, getDoc, collection, getDocs, query, orderBy
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-(async function initMap(){
-  const wrap = document.getElementById('mapWrap');
-  try{
-    const snap = await getDoc(doc(db,'settings','map'));
-    const url = (snap.exists()? snap.data().image_url: '') || '';
-    wrap.innerHTML = url
-      ? `<img src="${url}" alt="Mapa" style="max-width:100%; height:auto">`
-      : '<div class="muted">Obrázek mapy zatím není nastaven.</div>';
-  }catch(e){
-    wrap.innerHTML = '<div class="muted">Chyba při načítání mapy.</div>';
+// --- DOM ---
+const track = document.getElementById("track");
+const dotsWrap = document.getElementById("dots");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const viewport = document.getElementById("viewport");
+const infoPane = document.getElementById("infoPane");
+const titleEl = document.getElementById("title");
+const descEl  = document.getElementById("desc");
+const metaEl  = document.getElementById("meta");
+const layoutEl= document.getElementById("layout");
+
+// --- Načtení konfigurace a metadat snímků ---
+async function loadConfig(){
+  const s = await getDoc(doc(db,'settings','carousel'));
+  const base_url = s.exists() ? (s.data().base_url || '') : '';
+  const count = s.exists() ? Number(s.data().count || 0) : 0;
+  return { base_url: base_url.replace(/\/$/,''), count: Math.max(0, count|0) };
+}
+
+async function loadSlidesMeta(count){
+  // Čteme dokumenty carousel/{index} – index = 1..count (volitelně můžeš mít i méně)
+  const metas = Array.from({length: count}, (_,i)=>({ title:`Snímek ${i+1}`, desc:'' }));
+  // Podpora: pokud bys místo indexů vytvořil manuální doky s polem "index",
+  // dá se použít query(collection(db,'carousel'), orderBy('index')) a mapnout.
+  const snap = await getDocs(query(collection(db,'carousel'), orderBy('__name__')));
+  snap.forEach(d=>{
+    // očekáváme id jako "1","2"... nebo "P1" – zkusíme vyparsovat číslo
+    const m = d.id.match(/\d+/); if(!m) return;
+    const idx = (parseInt(m[0],10) || 0) - 1;
+    if(idx>=0 && idx<metas.length){
+      metas[idx] = {
+        title: d.data().title || metas[idx].title,
+        desc:  d.data().desc  || metas[idx].desc
+      };
+    }
+  });
+  return metas;
+}
+
+// --- Obrázky z GitHubu: base_url/P{N}.{ext} ---
+const extCandidates = ["jpg","jpeg","png","webp"];
+function createSmartImage(fullBase){
+  const img=new Image();
+  img.decoding="async"; img.loading="lazy"; img.alt="Obrázek";
+  let i=0, used=false;
+  function tryNext(){
+    if(i<extCandidates.length){ img.src=`${fullBase}.${extCandidates[i++]}`; }
+    else if(!used){ used=true; img.src=placeholderDataURI; }
   }
+  img.addEventListener("error", tryNext);
+  tryNext();
+  return img;
+}
+const placeholderDataURI = (() => {
+  const w=1024, h=1536;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1f2937"/><stop offset="100%" stop-color="#0f172a"/></linearGradient></defs>
+    <rect width="100%" height="100%" fill="url(#g)"/>
+    <g fill="#e5e7eb" text-anchor="middle">
+      <text x="${w/2}" y="${h/2-12}" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="36" font-weight="700">Není k dispozici</text>
+      <text x="${w/2}" y="${h/2+26}" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="24" opacity="0.8">Přidejte obrázek do GitHubu</text>
+    </g></svg>`;
+  return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+})();
+
+// --- Karusel stav ---
+let slides = []; // {title, desc, base}  base= `${base_url}/P{i+1}`
+let index=0; let total=0;
+
+function renderSlides(){
+  track.innerHTML=''; dotsWrap.innerHTML='';
+  slides.forEach((s, idx)=>{
+    const li = document.createElement("div");
+    li.className="slide"; li.setAttribute("role","listitem");
+
+    const fig=document.createElement("figure");
+    const img=createSmartImage(s.base);
+    fig.appendChild(img);
+    li.appendChild(fig);
+    track.appendChild(li);
+
+    const dot=document.createElement("button");
+    dot.className="dot";
+    dot.setAttribute("aria-label",`Přejít na snímek ${idx+1}`);
+    dot.addEventListener("click",()=>goTo(idx));
+    dotsWrap.appendChild(dot);
+  });
+  total = slides.length;
+  index = Math.min(index, Math.max(0,total-1));
+  update();
+}
+
+function update(){
+  if(total===0){
+    titleEl.textContent = 'Žádné snímky';
+    descEl.textContent  = 'Nastav v sekci Vedoucí → Karusel.';
+    metaEl.textContent  = '';
+    track.style.transform = 'translateX(0)';
+    dotsWrap.innerHTML='';
+    return;
+  }
+  track.style.transform = `translateX(${-index*100}%)`;
+  [...dotsWrap.children].forEach((d,i)=>{
+    d.classList.toggle("active", i===index);
+    d.setAttribute("aria-current", i===index ? "true" : "false");
+  });
+  const s = slides[index];
+  titleEl.textContent = s.title || `Snímek ${index+1}`;
+  descEl.textContent  = s.desc  || '';
+  metaEl.textContent  = `Snímek ${index+1} / ${total}`;
+  document.title = `${s.title || `Snímek ${index+1}`} – Karusel`;
+}
+function goTo(i){ index=(i+total)%total; update(); }
+function next(){ goTo(index+1); }
+function prev(){ goTo(index-1); }
+
+prevBtn.addEventListener("click", prev);
+nextBtn.addEventListener("click", next);
+addEventListener("keydown", e=>{ if(e.key==="ArrowRight") next(); if(e.key==="ArrowLeft")  prev(); });
+
+// Swipe
+(function enableSwipe(el){
+  let x0=null;
+  el.addEventListener("pointerdown", e=>x0=e.clientX, {passive:true});
+  el.addEventListener("pointerup", e=>{
+    if(x0===null) return;
+    const dx=e.clientX-x0;
+    if(Math.abs(dx)>30) (dx<0?next:prev)();
+    x0=null;
+  }, {passive:true});
+  el.addEventListener("pointercancel", ()=>x0=null);
+})(viewport);
+
+// Layout fit (2:3) – stejné chování jako v původním karuselu
+const RATIO_W=2, RATIO_H=3;
+function isStacked(){ return getComputedStyle(layoutEl).flexDirection === "column"; }
+function getViewportSize(){
+  const vv = window.visualViewport || null;
+  const ww = vv ? vv.width  : window.innerWidth;
+  const wh = vv ? vv.height : window.innerHeight;
+  const pad = 16, gap = 16;
+
+  let usableW = ww - pad*2;
+  let usableH = wh - pad*2 - 32; // rezerva na tečky
+
+  if(!isStacked()){
+    const paneW = infoPane.getBoundingClientRect().width || 0;
+    usableW = Math.max(0, usableW - paneW - gap);
+  }
+  const fitW = Math.min(usableW, (RATIO_W/RATIO_H)*usableH);
+  const fitH = fitW * (RATIO_H/RATIO_W);
+  return {width: Math.round(fitW), height: Math.round(fitH)};
+}
+function resizeViewport(){
+  const {width, height} = getViewportSize();
+  viewport.style.width  = width + "px";
+  viewport.style.height = height + "px";
+}
+const ro = new ResizeObserver(resizeViewport);
+ro.observe(document.body); ro.observe(infoPane);
+if(window.visualViewport){
+  visualViewport.addEventListener('resize', resizeViewport);
+  visualViewport.addEventListener('scroll', resizeViewport);
+}
+window.addEventListener('orientationchange', ()=>setTimeout(resizeViewport, 50));
+
+// Init
+(async function init(){
+  resizeViewport();
+  const { base_url, count } = await loadConfig();
+  const meta = await loadSlidesMeta(count);
+  slides = meta.map((m, i)=>({ title: m.title, desc: m.desc, base: `${base_url}/P${i+1}` }));
+  renderSlides();
 })();
