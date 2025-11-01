@@ -12,8 +12,8 @@
       <button class="tab active" data-tab="cfg-activities">Aktivity</button>
       <button class="tab" data-tab="cfg-milestones">Hodnosti</button>
       <button class="tab" data-tab="cfg-roles">Operátoři</button>
-      <button class="tab" data-tab="cfg-carousel">Karusel</button>
       <button class="tab" data-tab="cfg-utils">Nástroje</button>
+      <button class="tab" data-tab="cfg-carousel">Karusel</button>
     </div>
 
     <section id="cfg-activities" class="card tabpanel">
@@ -37,11 +37,11 @@
         <input id="msThreshold" class="input" type="number" placeholder="Počet dárků"/>
         <input id="msLabel" class="input" placeholder="Označení (badge)"/>
         <input id="msReward" class="input" placeholder="Výhra (volitelné)"/>
-        <input class="input" data-ms-img="${m.id}" placeholder="Obrázek (bez přípony, např. rank_01)" value="${m.image || ''}" style="flex:1; min-width:180px"/>
+        <input id="msImage" class="input" placeholder="Obrázek (bez přípony, např. rank_01)"/>
         <label class="row" style="gap:6px"><input type="checkbox" id="msVisible" checked /> Viditelný</label>
         <button class="btn" id="addMilestone">Přidat milník</button>
       </div>
-      <div class="muted">Tip: Hodnost můžete níže upravit (práh, název, výhra) a přepínat viditelnost.</div>
+      <div class="muted">Obrázky se berou ze složky nastavené v <code>settings/ranks_images.base_url</code>. Skrytá hodnost používá vždy <code>secret_rank</code>.</div>
       <div id="milestonesList" class="stack" style="margin-top:8px"></div>
     </section>
 
@@ -62,20 +62,6 @@
       <div id="rolesList" class="stack" style="margin-top:8px"></div>
     </section>
 
-    <section id="cfg-carousel" class="card tabpanel hidden">
-  <h2>Karusel – obrázky a popisky</h2>
-  <div class="stack" style="margin-bottom:12px">
-    <div class="row" style="flex-wrap:wrap; gap:8px">
-      <input id="carBaseUrl" class="input" placeholder="Base URL na GitHubu (bez lomítka na konci), např. https://raw.githubusercontent.com/.../main/images" />
-      <input id="carCount" class="input" type="number" placeholder="Počet snímků (N)" style="max-width:160px" />
-      <button class="btn" id="carSaveCfg">Uložit nastavení</button>
-    </div>
-    <div class="muted">Souborové názvy: <code>P1..PN</code> s příponami <code>.jpg/.jpeg/.png/.webp</code> (zkouší se automaticky).</div>
-  </div>
-
-  <div id="carSlidesForm" class="stack"></div>
-</section>
-
     <section id="cfg-utils" class="card tabpanel hidden">
       <h2>Nástroje</h2>
       <div class="stack">
@@ -92,12 +78,25 @@
       </div>
       <p class="muted">Pozn.: Bez Cloud Functions probíhá přepočet na klientovi. Žebříček ze součtu dokumentů v <code>logs</code>. Audit v <code>audits</code>.</p>
     </section>
+
+    <section id="cfg-carousel" class="card tabpanel hidden">
+      <h2>Karusel – obrázky a popisky</h2>
+      <div class="stack" style="margin-bottom:12px">
+        <div class="row" style="flex-wrap:wrap; gap:8px">
+          <input id="carBaseUrl" class="input" placeholder="Base URL na GitHubu (bez lomítka na konci), např. https://raw.githubusercontent.com/.../main/images" />
+          <input id="carCount" class="input" type="number" placeholder="Počet snímků (N)" style="max-width:160px" />
+          <button class="btn" id="carSaveCfg">Uložit nastavení</button>
+        </div>
+        <div class="muted">Souborové názvy: <code>P1..PN</code> s příponami <code>.jpg/.jpeg/.png/.webp</code> (zkouší se automaticky).</div>
+      </div>
+      <div id="carSlidesForm" class="stack"></div>
+    </section>
   </main>
 
   <script type="module">
     import { initTheme, initChrome } from './assets/js/ui.js';
     import { guard } from './assets/js/auth-guard.js';
-    import './assets/js/manager.js';
+    import './assets/js/manager.js?v=2025-11-01-1';
 
     initTheme(); initChrome();
     guard({ requireAuth: true, requireManager: true, onReady(){} });
