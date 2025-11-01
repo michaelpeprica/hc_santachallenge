@@ -6,7 +6,6 @@
   <title>Hodnosti • Vánoční výzva 2025</title>
   <link rel="stylesheet" href="./assets/css/styles.css" />
   <style>
-    /* jednoduchá mřížka na karty hodností */
     .ranks-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); }
     .rank-card{ display:flex; flex-direction:column; gap:10px; align-items:flex-start }
     .rank-media{
@@ -24,7 +23,7 @@
   <main>
     <section class="card">
       <h2 style="margin-top:0">Hodnosti</h2>
-      <p class="muted">Zobrazují se všechny hodnosti. Ty, které jsou skryté, se ukáží jako „Tajné“ s ilustračním obrázkem.</p>
+      <p class="muted">Zobrazují se všechny hodnosti. Skryté se ukáží jako „Tajné“ s ilustračním obrázkem.</p>
       <div id="ranksGrid" class="ranks-grid"></div>
     </section>
   </main>
@@ -32,7 +31,7 @@
   <script type="module">
     import { initTheme, initChrome } from './assets/js/ui.js';
     import { guard } from './assets/js/auth-guard.js';
-    import './assets/js/ranks.js';
+    import './assets/js/ranks.js?v=2025-11-01-1';
 
     initTheme(); initChrome();
     guard({ requireAuth: true, onReady(){} });
