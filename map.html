@@ -7,71 +7,35 @@
   <link rel="stylesheet" href="./assets/css/styles.css" />
   <style>
     /* Karusel – přizpůsobený vzhledu appky (ponecháváme tvoje proměnné/tóny) */
-    .carousel-page{ overflow:hidden; }
-    .carousel-page main{ margin-top:0 !important; }
-    .carousel{
-  display:flex;
-  flex-direction:column;
-  height:100%;
-  overflow:hidden;         /* klíčové: nic nepřeteče ven */
-}
-    .layout{
-  display:flex;
-  gap:16px;
-  align-items:stretch;
-  justify-content:center;
-  flex:1 1 auto;
-  min-height:0;            /* dovolí dětem zmenšit výšku */
-}
-.info-pane{
-  flex:0 0 clamp(220px, 28vw, 360px);
-  overflow:auto;
-  max-height:none;         /* neomezuj CSSem, hlídá to JS */
-}
+    .carousel{ width:100%; display:flex; flex-direction:column; gap:12px; }
+    .layout{ display:flex; gap:16px; align-items:stretch; justify-content:center; }
+    .info-pane{
+      flex:0 0 clamp(220px, 28vw, 360px);
+      background:var(--card); border:1px solid rgba(255,255,255,.08);
+      border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:10px;
+      max-height:calc(100svh - 160px); overflow:auto; box-shadow:var(--shadow);
+    }
     .info-pane h1{ margin:0; font-size:1.05rem; }
     .info-pane p{ margin:0; color:var(--muted); line-height:1.5; }
     .info-meta{ margin-top:auto; font-size:.85rem; opacity:.8; }
-.viewport{
-  position:relative;
-  overflow:hidden;
-  border-radius:16px;
-  background:var(--card);
-  box-shadow:var(--shadow);
-  width:100%;
-  height:auto;
-  touch-action:pan-y;
-
-  flex:1 1 auto;
-  min-height:0;           /* klíčové v rámci flex kontejneru */
-  display:flex;           /* vycentrování obsahu vertikálně i horizontálně */
-  align-items:center;
-  justify-content:center;
-}
-.track{ display:flex; height:100%; width:100%; transition:transform .5s ease; }
-.slide{ min-width:100%; height:100%; position:relative; display:flex; align-items:center; justify-content:center; }
-.slide figure{ margin:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
-.slide img{
-  width:100%;
-  height:100%;
-  object-fit:contain;      /* výchozí: nic neosekne */
-  object-position:center;
-  background:#0f1217;
-  display:block;
-  user-select:none;
-  -webkit-user-drag:none;
-}
-    /* když přepneme režim na „cover“ (dvojklikem/Z), přidá se na <img> třída .cover */
-.slide img.cover{
-  object-fit:cover;        /* vyplní celý rámeček (může oříznout) */
-}
+    .viewport{
+      position:relative; overflow:hidden; border-radius:16px; background:var(--card);
+      box-shadow:var(--shadow); aspect-ratio: 2 / 3; width:100%; height:auto; touch-action:pan-y;
+    }
+    .track{ display:flex; height:100%; width:100%; transition:transform .5s ease; }
+    .slide{ min-width:100%; height:100%; position:relative; }
+    .slide figure{ margin:0; width:100%; height:100%; }
+    .slide img{ width:100%; height:100%; object-fit:contain; background:#0f1217; display:block; user-select:none; -webkit-user-drag:none; }
     .nav{ position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; pointer-events:none; }
     .nav .btn{ pointer-events:auto; width:42px; height:42px; border-radius:999px; background:rgba(0,0,0,.45); color:#fff; border:1px solid rgba(255,255,255,.15); display:grid; place-items:center; margin:10px; cursor:pointer; }
-
+    .dots{ display:flex; gap:8px; justify-content:center; align-items:center; min-height:32px; }
+    .dot{ width:10px; height:10px; border-radius:50%; background:#3b3f46; border:1px solid #22262c; cursor:pointer; }
+    .dot.active{ background:#e5e7eb; transform:scale(1.15); }
     @media (max-width: 700px){ .layout{ flex-direction:column; } .info-pane{ max-height:none; } }
   </style>
 </head>
-<body class="carousel-page">
-  <main class="card" style="padding:16px; margin-top:12px">
+<body>
+  <main class="card" style="padding:16px">
     <h2 style="margin-top:0">Mapa soutěže (karusel)</h2>
 
     <div class="carousel" aria-label="Karusel s panelem">
@@ -90,6 +54,8 @@
           </div>
         </div>
       </div>
+
+      <div class="dots" id="dots" aria-live="polite"></div>
     </div>
   </main>
 
