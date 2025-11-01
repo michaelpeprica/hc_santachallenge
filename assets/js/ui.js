@@ -1,6 +1,8 @@
 // assets/js/ui.js
 import { auth } from './firebase.js';
 import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { db } from './firebase.js';
+import { doc, getDoc, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 export function initTheme(){
   const t = localStorage.getItem('xx_theme') || 'dark';
@@ -15,16 +17,7 @@ function renderHeader(){
   const header = document.createElement('header');
   header.innerHTML = `
     <div class="brand">
-      <img src="./assets/hc_logo.png" 
-           alt="Home Credit" 
-           class="logo" 
-           id="hcLogo"
-           onerror="this.onerror=null;
-                    const exts=['jpg','jpeg','webp'];
-                    for(let i=0;i<exts.length;i++){
-                      const test='./assets/hc_logo.'+exts[i];
-                      fetch(test).then(r=>{if(r.ok){this.src=test;throw 'break';}});
-                    }" />
+      <img src="./assets/hc_logo.png" alt="Home Credit" class="logo" id="hcLogo" />
       <h1>Vánoční výzva 2025</h1>
     </div>
     <nav>
@@ -32,12 +25,22 @@ function renderHeader(){
       <a class="btn small" href="./ranks.html" title="Hodnosti">🏆 Hodnosti</a>
       <a class="btn small" href="./map.html" title="Mapa">🗺️ Mapa</a>
       <a class="btn small" href="./manager.html" title="Nastavení">🛠️ Vedoucí</a>
+      <button class="btn small" id="avatarBtn" title="Změnit avatar">🧑‍🎄 Avatar</button>
       <button class="btn small" id="themeToggle" title="Přepnout téma">🌓 Téma</button>
-      <span id="accountInfo" class="account"></span>
+      <span id="accountInfo" class="account">
+        <span id="accountAvatar"></span>
+        <span id="accountEmail"></span>
+      </span>
       <button class="btn small ghost" id="signOutBtn" title="Odhlásit">Odhlásit</button>
     </nav>
   `;
   document.body.prepend(header);
+
+  // aktivní stránka
+  const path = location.pathname.split('/').pop() || 'index.html';
+  for(const a of header.querySelectorAll('a.btn')) {
+    if (a.getAttribute('href') === `./${path}`) a.classList.add('active');
+  }
 
   document.getElementById('themeToggle')?.addEventListener('click', ()=>{
     const next = document.body.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
@@ -45,12 +48,186 @@ function renderHeader(){
     localStorage.setItem('xx_theme', next);
   });
   document.getElementById('signOutBtn')?.addEventListener('click', ()=> signOut(auth));
+  document.getElementById('avatarBtn')?.addEventListener('click', ()=> openAvatarPicker());
+}
+// --- Avatar: generování barvy podle UID/emailu ---
+function hueFromString(s){
+  let h=0; for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) % 360; }
+  return h;
+}
+function initialsFrom(displayName, email){
+  const name = (displayName||'').trim();
+  if(name){
+    const parts = name.split(/\s+/).filter(Boolean);
+    const first = parts[0]?.[0] || '';
+    const last  = parts.length>1 ? parts[parts.length-1][0] : '';
+    return (first+last || first).toUpperCase();
+  }
+  return ((email||'?')[0] + (email?.split('@')[0]?.[1] || '')).toUpperCase();
+}
 
-  const path = location.pathname.split('/').pop() || 'index.html';
-  for(const a of header.querySelectorAll('a.btn')) {
-    if (a.getAttribute('href') === `./${path}`) a.classList.add('active');
+// vytvoří DOM pro avatar (img nebo iniciály s gradientem)
+export function createAvatarNode(profile, size='sm'){
+  const el = document.createElement('span');
+  el.className = `avatar avatar-${size}`;
+
+  const wanted = profile?.avatar || null;   // např. "avatar_05"
+  if(wanted){
+    const img = new Image();
+    img.alt = 'avatar';
+    img.loading = 'lazy';
+    // zkus přípony; první která existuje, se načte
+    const exts = ['png','jpg','jpeg','webp'];
+    let idx = 0, done=false;
+    function next(){
+      if(idx < exts.length){
+        img.src = `./assets/avatars/${wanted}.${exts[idx++]}`;
+      } else if(!done){
+        done=true; el.appendChild(buildInitials(profile));
+      }
+    }
+    img.addEventListener('error', next);
+    img.addEventListener('load', ()=>{ if(!done){ done=true; }});
+    next();
+    el.appendChild(img);
+    return el;
+  }
+  el.appendChild(buildInitials(profile));
+  return el;
+}
+function buildInitials(profile){
+  const span = document.createElement('span');
+  span.className='avatar-initials';
+  const seed = (profile?.uid || profile?.email || 'x');
+  const h = hueFromString(seed);
+  span.style.background = `linear-gradient(180deg, hsl(${h} 70% 55%) 0%, hsl(${h} 70% 75%) 100%)`;
+  span.textContent = initialsFrom(profile?.displayName, profile?.email);
+  return span;
+}
+
+// načti profil operátora (displayName, avatar) z Firestore
+export async function getOperatorProfile(uid, email){
+  try{
+    const ref = doc(db,'operators', uid);
+    const snap = await getDoc(ref);
+    if(snap.exists()){
+      return { uid, email, ...snap.data() };
+    } else {
+      // minimálně vrať e-mail, ať jsou iniciály
+      return { uid, email, displayName:'', avatar:null };
+    }
+  }catch(e){
+    console.warn('[ui] Nelze načíst operators/', uid, e);
+    return { uid, email, displayName:'', avatar:null };
   }
 }
+
+// vykresli avatar a e-mail v headeru
+async function renderAccountArea(user){
+  const avatarSlot = document.getElementById('accountAvatar');
+  const emailSlot  = document.getElementById('accountEmail');
+  if(!avatarSlot || !emailSlot) return;
+
+  const prof = await getOperatorProfile(user.uid, user.email);
+  avatarSlot.innerHTML = '';
+  avatarSlot.appendChild(createAvatarNode({ uid:user.uid, email:user.email, displayName:prof.displayName, avatar:prof.avatar }, 'sm'));
+  emailSlot.textContent = user.email || '';
+}
+
+// otevře modal pro výběr avataru a uloží do operators/{uid}.avatar
+async function openAvatarPicker(){
+  const u = auth.currentUser;
+  if(!u){ alert('Nejprve se přihlas.'); return; }
+
+  // načti stávající profil
+  const prof = await getOperatorProfile(u.uid, u.email);
+  const current = prof.avatar || null;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h3 style="margin:0 0 8px 0">Vyber si avatar</h3>
+      <div class="grid" id="avatarsGrid"></div>
+      <div class="actions">
+        <button class="btn ghost" id="clearAvatar">Použít iniciály</button>
+        <button class="btn" id="saveAvatar">Uložit</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // naplň grid 15 obrázky
+  const grid = overlay.querySelector('#avatarsGrid');
+  const exts = ['png','jpg','jpeg','webp'];
+  let selected = current;   // "avatar_05" apod.
+
+  for(let i=1;i<=15;i++){
+    const name = `avatar_${String(i).padStart(2,'0')}`;
+    const cell = document.createElement('div'); cell.className='cell';
+
+    const thumb = document.createElement('div'); thumb.className='thumb';
+    if(selected === name) thumb.classList.add('selected');
+
+    // načti první existující příponu
+    const img = new Image(); let k=0, ok=false;
+    function next(){
+      if(k<exts.length){ img.src = `./assets/avatars/${name}.${exts[k++]}`; }
+    }
+    img.addEventListener('error', ()=> next());
+    img.addEventListener('load', ()=> ok=true);
+    next();
+
+    thumb.appendChild(img);
+    cell.appendChild(thumb);
+    cell.appendChild(Object.assign(document.createElement('div'), {textContent:name}));
+
+    thumb.addEventListener('click', ()=>{
+      selected = name;
+      grid.querySelectorAll('.thumb').forEach(t=>t.classList.remove('selected'));
+      thumb.classList.add('selected');
+    });
+
+    grid.appendChild(cell);
+  }
+
+  // ovladače
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#clearAvatar')?.addEventListener('click', ()=>{
+    selected = null;
+    grid.querySelectorAll('.thumb').forEach(t=>t.classList.remove('selected'));
+  });
+  overlay.querySelector('#saveAvatar')?.addEventListener('click', async ()=>{
+    try{
+      const ref = doc(db,'operators', u.uid);
+      if(selected){
+        await setDoc(ref, { avatar: selected }, { merge:true });
+      }else{
+        await setDoc(ref, { avatar: null }, { merge:true });
+      }
+      await renderAccountArea(u);
+      overlay.remove();
+      alert('Avatar uložen.');
+    }catch(err){
+      console.error('[ui] Ukládání avataru selhalo:', err);
+      alert('Nepodařilo se uložit avatar.');
+    }
+  });
+}
+
+// kdykoli se přihlášený uživatel změní, vykresli avatar v headeru
+onAuthStateChanged(auth, (u)=>{
+  const info = document.getElementById('accountInfo');
+  if(!info) return;
+  if(u){
+    renderAccountArea(u);
+  }else{
+    const avatarSlot = document.getElementById('accountAvatar');
+    const emailSlot  = document.getElementById('accountEmail');
+    if(avatarSlot) avatarSlot.innerHTML = '';
+    if(emailSlot)  emailSlot.textContent = 'Nepřihlášen';
+  }
+});
 function renderFooter(){
   const f = document.createElement('footer');
   f.className = 'footer';
