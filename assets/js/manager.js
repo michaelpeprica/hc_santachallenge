@@ -80,32 +80,58 @@ addActivity?.addEventListener('click', async ()=>{
 });
 
 // === Milestones ===
+const msThreshold = document.getElementById('msThreshold');
+const msLabel = document.getElementById('msLabel');
+const msReward = document.getElementById('msReward');
+const msImage = document.getElementById('msImage');
+const msVisible = document.getElementById('msVisible');
+const addMilestone = document.getElementById('addMilestone');
+const milestonesList = document.getElementById('milestonesList');
+
 async function subscribeMilestones(){
   const qMs = query(collection(db,'milestones'), orderBy('threshold'));
   onSnapshot(qMs, (snap)=>{
     milestonesList.innerHTML = '';
-    const items = []; snap.forEach(d=>items.push({id:d.id, visible: d.data().visible!==false, reward: d.data().reward||'', ...d.data()}));
+    const items = [];
+    snap.forEach(d=>{
+      const x = d.data();
+      items.push({
+        id: d.id,
+        threshold: Number(x.threshold||0),
+        label: x.label || '',
+        reward: x.reward || '',
+        visible: x.visible !== false,
+        image: (x.image || '').trim() || ''
+      });
+    });
+
     items.forEach(m=>{
       const row = document.createElement('div'); row.className='card';
       row.innerHTML = `
-        <div class="row" style="gap:8px; align-items:center; flex-wrap:wrap">
+        <div class="row" style="gap:8px; align-items:flex-start; flex-wrap:wrap">
           <input class="input" data-ms-th="${m.id}" type="number" value="${m.threshold}" style="max-width:120px"/>
-          <input class="input" data-ms-lb="${m.id}" value="${m.label||''}" style="flex:1; min-width:180px"/>
-          <input class="input" data-ms-rw="${m.id}" value="${m.reward||''}" placeholder="Výhra" style="flex:1; min-width:180px"/>
-          <label class="row" style="gap:6px"><input type="checkbox" data-ms-vs="${m.id}" ${m.visible!==false?'checked':''}/> Viditelné</label>
+          <input class="input" data-ms-lb="${m.id}" value="${escapeHtml(m.label)}" style="flex:1; min-width:180px"/>
+          <input class="input" data-ms-rw="${m.id}" value="${escapeHtml(m.reward)}" placeholder="Výhra" style="flex:1; min-width:180px"/>
+          <input class="input" data-ms-img="${m.id}" value="${escapeHtml(m.image)}" placeholder="Obrázek (např. rank_01)" style="flex:1; min-width:180px"/>
+          <label class="row" style="gap:6px"><input type="checkbox" data-ms-vs="${m.id}" ${m.visible?'checked':''}/> Viditelné</label>
           <button class="btn small ghost" data-ms-save="${m.id}">Uložit</button>
           <button class="btn small ghost" data-del="${m.id}">Smazat</button>
         </div>`;
       milestonesList.appendChild(row);
-      row.querySelector(`[data-del="${m.id}"]`)?.addEventListener('click', async()=>{ if(confirm('Smazat milník?')) await deleteDoc(doc(db,'milestones', m.id)); });
+
+      row.querySelector(`[data-del="${m.id}"]`)?.addEventListener('click', async()=>{
+        if(confirm('Smazat milník?')) await deleteDoc(doc(db,'milestones', m.id));
+      });
+
       row.querySelector(`[data-ms-save="${m.id}"]`)?.addEventListener('click', async()=>{
         const th = Number(row.querySelector(`[data-ms-th="${m.id}"]`).value);
         const lb = row.querySelector(`[data-ms-lb="${m.id}"]`).value.trim();
         const rw = row.querySelector(`[data-ms-rw="${m.id}"]`).value.trim();
+        const im = row.querySelector(`[data-ms-img="${m.id}"]`).value.trim();
         const vs = !!row.querySelector(`[data-ms-vs="${m.id}"]`).checked;
-        const im = row.querySelector(`[data-ms-img="${m.id}"]`)?.value.trim() || '';
         if(!Number.isFinite(th)) return alert('Zadejte platný práh.');
         await updateDoc(doc(db,'milestones', m.id), { threshold: th, label: lb, reward: rw, visible: vs, image: im });
+        alert('Uloženo.');
       });
     });
   });
@@ -113,11 +139,19 @@ async function subscribeMilestones(){
 addMilestone?.addEventListener('click', async()=>{
   if(!msThreshold.value || !msLabel.value) return alert('Doplňte hodnotu a popisek.');
   await addDoc(collection(db,'milestones'), {
-    threshold: Number(msThreshold.value), label: msLabel.value.trim(),
-    reward: (msReward.value||'').trim(), visible: !!msVisible.checked, createdAt: serverTimestamp()
+    threshold: Number(msThreshold.value),
+    label: msLabel.value.trim(),
+    reward: (msReward.value||'').trim(),
+    visible: !!msVisible.checked,
+    image: (msImage.value||'').trim(),   // <— nově ukládáme i image
+    createdAt: serverTimestamp()
   });
-  msThreshold.value=''; msLabel.value=''; msReward.value=''; msVisible.checked=true;
+  msThreshold.value=''; msLabel.value=''; msReward.value=''; msImage.value=''; msVisible.checked=true;
 });
+
+// malá pomocná
+function escapeHtml(str){ return (str||'').replace(/[&<>\"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s])); }
+
 
 // === Roles / Operators ===
 async function buildUsersForManager(){
