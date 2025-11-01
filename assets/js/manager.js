@@ -159,6 +159,64 @@ document.getElementById('assignRole')?.addEventListener('click', async()=>{
   buildUsersForManager();
 });
 
+// === Carousel (settings + titles/descriptions) ===
+const carBaseUrl = document.getElementById('carBaseUrl');
+const carCount = document.getElementById('carCount');
+const carSaveCfg = document.getElementById('carSaveCfg');
+const carSlidesForm = document.getElementById('carSlidesForm');
+
+async function loadCarouselCfg(){
+  const s = await getDoc(doc(db,'settings','carousel'));
+  const base = s.exists() ? (s.data().base_url || '') : '';
+  const count = s.exists() ? Number(s.data().count || 0) : 0;
+  carBaseUrl.value = base;
+  carCount.value = String(count||0);
+  await renderCarouselSlides(count);
+}
+
+async function renderCarouselSlides(count){
+  carSlidesForm.innerHTML = '';
+  // načti existující metas
+  const metas = {};
+  const snap = await getDocs(query(collection(db,'carousel'), orderBy('__name__')));
+  snap.forEach(d=>{ metas[d.id] = d.data(); });
+
+  for(let i=1;i<=count;i++){
+    const id = String(i); // dokument carousel/{i}
+    const m = metas[id] || {};
+    const row = document.createElement('div'); row.className='card';
+    row.innerHTML = `
+      <div class="row" style="gap:8px; align-items:flex-start; flex-wrap:wrap">
+        <div style="width:60px">#${i}</div>
+        <input class="input" data-car-title="${id}" placeholder="Titulek snímku" value="${m.title || ''}" style="flex:1; min-width:200px" />
+        <input class="input" data-car-desc="${id}" placeholder="Popis snímku" value="${m.desc || ''}" style="flex:2; min-width:280px" />
+        <button class="btn small ghost" data-car-save="${id}">Uložit</button>
+        <button class="btn small ghost" data-car-clear="${id}">Vyčistit</button>
+      </div>`;
+    carSlidesForm.appendChild(row);
+
+    row.querySelector(`[data-car-save="${id}"]`).addEventListener('click', async ()=>{
+      const title = row.querySelector(`[data-car-title="${id}"]`).value.trim();
+      const desc  = row.querySelector(`[data-car-desc="${id}"]`).value.trim();
+      await setDoc(doc(db,'carousel', id), { title, desc }, { merge:true });
+      alert(`Uloženo: snímek ${i}`);
+    });
+    row.querySelector(`[data-car-clear="${id}"]`).addEventListener('click', async ()=>{
+      await setDoc(doc(db,'carousel', id), { title:'', desc:'' }, { merge:true });
+      row.querySelector(`[data-car-title="${id}"]`).value = '';
+      row.querySelector(`[data-car-desc="${id}"]`).value  = '';
+    });
+  }
+}
+
+carSaveCfg?.addEventListener('click', async ()=>{
+  const base = carBaseUrl.value.trim().replace(/\/$/,'');
+  const count = Math.max(0, parseInt(carCount.value||'0',10));
+  await setDoc(doc(db,'settings','carousel'), { base_url: base, count }, { merge:true });
+  await renderCarouselSlides(count);
+  alert('Nastavení karuselu uloženo');
+});
+
 // === Weekly info ===
 async function ensureSettingsDocExists(){
   const ref = doc(db,'settings','current_week_info');
@@ -232,4 +290,5 @@ refreshAudits?.addEventListener('click', ()=> loadAudits());
   subscribeMilestones();
   await buildUsersForManager();
   await loadAudits();
+  await loadCarouselCfg();   
 })();
