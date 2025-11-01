@@ -5,51 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Vedoucí • Vánoční výzva 2025</title>
   <link rel="stylesheet" href="./assets/css/styles.css" />
+  <!-- Volitelně: základní reset pro jistotu -->
+  <style>
+    /* Základní fixy pro případ, že se něco „rozbilo“ v globálním CSS */
+    html, body { height: 100%; }
+    body { margin: 0; }
+    main { margin-top: 12px; } /* jemná mezera pod headerem */
+    .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+    .tab { cursor:pointer; }
+    .tabpanel.hidden { display: none; }
+    .row { display:flex; gap:8px; align-items:center; }
+    .stack { display:flex; flex-direction:column; gap:8px; }
+    @media (max-width: 720px) {
+      .row { flex-wrap: wrap; }
+    }
+  </style>
 </head>
 <body>
   <main>
-    <div class="tabs" role="tablist">
-      <button class="tab active" data-tab="cfg-activities">Aktivity</button>
-      <button class="tab" data-tab="cfg-milestones">Hodnosti</button>
-      <button class="tab" data-tab="cfg-roles">Operátoři</button>
-      <button class="tab" data-tab="cfg-utils">Nástroje</button>
-      <button class="tab" data-tab="cfg-carousel">Karusel</button>
+    <!-- ZÁLOŽKY -->
+    <div class="tabs" role="tablist" aria-label="Nastavení manager">
+      <button class="tab active" data-tab="cfg-activities" role="tab" aria-selected="true">Aktivity</button>
+      <button class="tab" data-tab="cfg-milestones" role="tab" aria-selected="false">Hodnosti</button>
+      <button class="tab" data-tab="cfg-roles" role="tab" aria-selected="false">Operátoři</button>
+      <button class="tab" data-tab="cfg-utils" role="tab" aria-selected="false">Nástroje</button>
+      <button class="tab" data-tab="cfg-carousel" role="tab" aria-selected="false">Karusel</button>
     </div>
 
-    <section id="cfg-activities" class="card tabpanel">
-      <h2>Nastavení aktivit</h2>
-      <div class="row">
-        <input id="actName" class="input" placeholder="Název aktivity"/>
+    <!-- PANEL: AKTIVITY -->
+    <section id="cfg-activities" class="card tabpanel" role="tabpanel" aria-labelledby="tab-activities">
+      <h2 style="margin-top:0">Nastavení aktivit</h2>
+      <div class="row" style="flex-wrap:wrap">
+        <input id="actName" class="input" placeholder="Název aktivity" />
         <select id="actCategory" class="input">
           <option value="tel_weekly">Telefonie – týdenní</option>
           <option value="kore_static">Korespondence – stálé</option>
         </select>
-        <input id="actPoints" class="input" type="number" placeholder="Body za splnění"/>
-        <input id="actDesc" class="input" placeholder="Krátký popis (volitelné)"/>
+        <input id="actPoints" class="input" type="number" placeholder="Body za splnění" />
+        <input id="actDesc" class="input" placeholder="Krátký popis (volitelné)" />
         <button class="btn" id="addActivity">Přidat</button>
       </div>
       <div id="activitiesList" class="stack" style="margin-top:8px"></div>
     </section>
 
-    <section id="cfg-milestones" class="card tabpanel hidden">
-      <h2>Hodnosti</h2>
-      <div class="row" style="flex-wrap:wrap; gap:8px">
-        <input id="msThreshold" class="input" type="number" placeholder="Počet dárků"/>
-        <input id="msLabel" class="input" placeholder="Označení (badge)"/>
-        <input id="msReward" class="input" placeholder="Výhra (volitelné)"/>
-        <input id="msImage" class="input" placeholder="Obrázek (bez přípony, např. rank_01)"/>
+    <!-- PANEL: HODNOSTI -->
+    <section id="cfg-milestones" class="card tabpanel hidden" role="tabpanel" aria-labelledby="tab-milestones">
+      <h2 style="margin-top:0">Hodnosti</h2>
+      <div class="row" style="flex-wrap:wrap">
+        <input id="msThreshold" class="input" type="number" placeholder="Práh bodů" />
+        <input id="msLabel" class="input" placeholder="Označení (badge)" />
+        <input id="msReward" class="input" placeholder="Výhra (volitelné)" />
+        <input id="msImage" class="input" placeholder="Obrázek (bez přípony, např. rank_01)" />
         <label class="row" style="gap:6px"><input type="checkbox" id="msVisible" checked /> Viditelný</label>
         <button class="btn" id="addMilestone">Přidat milník</button>
       </div>
-      <div class="muted">Obrázky se berou ze složky nastavené v <code>settings/ranks_images.base_url</code>. Skrytá hodnost používá vždy <code>secret_rank</code>.</div>
+      <p class="muted">Obrázky se berou ze složky v <code>settings/ranks_images.base_url</code>. Skrytá hodnost používá vlastní obrázek rozmazaně.</p>
       <div id="milestonesList" class="stack" style="margin-top:8px"></div>
     </section>
 
-    <section id="cfg-roles" class="card tabpanel hidden">
-      <h2>Operátoři – role a jména</h2>
-      <div class="row">
-        <select id="userSelect" class="input" style="min-width:280px"></select>
-        <input id="displayNameInput" class="input" placeholder="Jméno Příjmení" style="min-width:220px"/>
+    <!-- PANEL: ROLE / OPERÁTOŘI -->
+    <section id="cfg-roles" class="card tabpanel hidden" role="tabpanel" aria-labelledby="tab-roles">
+      <h2 style="margin-top:0">Operátoři – role a jména</h2>
+      <div class="row" style="flex-wrap:wrap">
+        <select id="userSelect" class="input" style="min-width:260px"></select>
+        <input id="displayNameInput" class="input" placeholder="Jméno Příjmení" style="min-width:220px" />
         <select id="roleSelect" class="input">
           <option value="manager">manager</option>
           <option value="operator_tel">operator_tel</option>
@@ -62,10 +81,11 @@
       <div id="rolesList" class="stack" style="margin-top:8px"></div>
     </section>
 
-    <section id="cfg-utils" class="card tabpanel hidden">
-      <h2>Nástroje</h2>
+    <!-- PANEL: NÁSTROJE -->
+    <section id="cfg-utils" class="card tabpanel hidden" role="tabpanel" aria-labelledby="tab-utils">
+      <h2 style="margin-top:0">Nástroje</h2>
       <div class="stack">
-        <div class="row">
+        <div class="row" style="flex-wrap:wrap">
           <button class="btn ghost" id="recomputeLeaderboard">Přepočítat žebříček (klientsky)</button>
           <button class="btn ghost" id="refreshAudits">Načíst Audit bodů</button>
         </div>
@@ -76,13 +96,14 @@
         </div>
         <div id="auditsList" class="stack" style="margin-top:8px"></div>
       </div>
-      <p class="muted">Pozn.: Bez Cloud Functions probíhá přepočet na klientovi. Žebříček ze součtu dokumentů v <code>logs</code>. Audit v <code>audits</code>.</p>
+      <p class="muted">Pozn.: Bez Cloud Functions probíhá přepočet na klientovi. Žebříček je ze součtu dokumentů v <code>logs</code>. Audit v <code>audits</code>.</p>
     </section>
 
-    <section id="cfg-carousel" class="card tabpanel hidden">
-      <h2>Karusel – obrázky a popisky</h2>
+    <!-- PANEL: KARUSEL -->
+    <section id="cfg-carousel" class="card tabpanel hidden" role="tabpanel" aria-labelledby="tab-carousel">
+      <h2 style="margin-top:0">Karusel – obrázky a popisky</h2>
       <div class="stack" style="margin-bottom:12px">
-        <div class="row" style="flex-wrap:wrap; gap:8px">
+        <div class="row" style="flex-wrap:wrap">
           <input id="carBaseUrl" class="input" placeholder="Base URL na GitHubu (bez lomítka na konci), např. https://raw.githubusercontent.com/.../main/images" />
           <input id="carCount" class="input" type="number" placeholder="Počet snímků (N)" style="max-width:160px" />
           <button class="btn" id="carSaveCfg">Uložit nastavení</button>
@@ -93,13 +114,28 @@
     </section>
   </main>
 
+  <!-- Skripty: UI (header, footer, sníh, SVG pozadí), guard a logika manageru -->
   <script type="module">
-    import { initTheme, initChrome } from './assets/js/ui.js';
-    import { guard } from './assets/js/auth-guard.js';
-    import './assets/js/manager.js?v=2025-11-01-1';
+    import { initTheme, initChrome } from './assets/js/ui.js?v=2025-11-01-2';
+    import { guard } from './assets/js/auth-guard.js?v=2025-11-01-1';
+    import './assets/js/manager.js?v=2025-11-01-2';
 
-    initTheme(); initChrome();
+    // Nastaví téma, vykreslí header+footer+pozadí a zkontroluje oprávnění manažera
+    initTheme();
+    initChrome();
     guard({ requireAuth: true, requireManager: true, onReady(){} });
+
+    // Jednoduchý tab-switcher (pro případ, že globální logika chybí)
+    const tabs = document.querySelectorAll('.tabs .tab');
+    const panels = document.querySelectorAll('.tabpanel');
+    tabs.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        tabs.forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+        panels.forEach(p=>p.classList.add('hidden'));
+        btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+        document.getElementById(btn.dataset.tab)?.classList.remove('hidden');
+      });
+    });
   </script>
 </body>
 </html>
