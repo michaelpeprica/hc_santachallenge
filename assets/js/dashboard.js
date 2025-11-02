@@ -97,9 +97,24 @@ onAuthStateChanged(auth, async (user)=>{
     refreshLeaderboard(),
     loadMyRecent(),
     subscribeWeekInfo(),
-    populateTargetOperatorSelect()
+    populateTargetOperatorSelect(),
+    subscribeOperatorsForAvatars()
   ]);
 });
+
+let unsubscribeOpsAvatars = null;
+function subscribeOperatorsForAvatars(){
+  try{
+    const ref = collection(db,'operators');
+    unsubscribeOpsAvatars?.();
+    unsubscribeOpsAvatars = onSnapshot(ref, ()=>{
+      // kdokoliv změnil profil (včetně avataru) → překreslit žebříček
+      refreshLeaderboard();
+    });
+  }catch(e){
+    console.warn('[dashboard] subscribeOperatorsForAvatars:', e);
+  }
+}
 
 // --- Weekly info (settings/current_week_info) ---
 async function subscribeWeekInfo(){
@@ -287,8 +302,54 @@ async function loadMyRecent(){
   }
 }
 
-// --- Avatar helpery (stejná logika) ---
-function hashToColor(str){ let h=0; for(let i=0;i<str.length;i++){ h=(h<<5)-h+str.charCodeAt(i); h|=0; } const hue=Math.abs(h)%360; return `hsl(${hue} 70% 60%)`; }
+// === Avatar helpers (lokální soubory + fallback na iniciály s gradientem) ===
+function _hueFrom(str){ let h=0; for(let i=0;i<str.length;i++){ h=(h*31 + str.charCodeAt(i))%360; } return h; }
+function _initials(displayName, email){
+  const n=(displayName||'').trim();
+  if(n){
+    const parts=n.split(/\s+/).filter(Boolean);
+    const first=parts[0]?.[0]||'', last=(parts.length>1?parts[parts.length-1][0]:'');
+    return (first+last||first).toUpperCase();
+  }
+  const id=email?.split('@')[0]||'';
+  return ((email||'?')[0] + (id[1]||'')).toUpperCase();
+}
+function _initialsEl(o){
+  const span=document.createElement('span'); span.className='avatar-initials';
+  const seed=o.uid||o.email||'x'; const h=_hueFrom(seed);
+  span.style.background=`linear-gradient(135deg, hsl(${h} 70% 55%) 0%, hsl(${h} 70% 75%) 100%)`;
+  span.textContent=_initials(o.displayName, o.email);
+  return span;
+}
+/**
+ * Vytvoří <span class="avatar"> s IMG (pokud je avatarName) nebo s iniciálami + gradientem
+ * Přidává ?v=nonce pro cache-busting (window.__avatarNonce se nastaví po uložení v ui.js)
+ */
+function createAvatarEl(o, size='md'){
+  const el=document.createElement('span');
+  el.className=`avatar avatar-${size}`;
+  if(o.avatar){
+    const img=new Image(); img.alt='avatar'; img.loading='lazy';
+    img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover';
+    const exts=['png','jpg','jpeg','webp']; let i=0, done=false;
+    const nonce = window.__avatarNonce ? `?v=${window.__avatarNonce}` : '';
+    function tryNext(){
+      if(i<exts.length){
+        img.src = `./assets/avatars/${o.avatar}.${exts[i++]}${nonce}`;
+      } else if(!done){
+        done=true; el.appendChild(_initialsEl(o));
+      }
+    }
+    img.addEventListener('error', tryNext);
+    img.addEventListener('load', ()=>{ if(!done){ done=true; }});
+    tryNext();
+    el.appendChild(img);
+    return el;
+  }
+  el.appendChild(_initialsEl(o));
+  return el;
+}
+
 
 // --- Milestones toggle (tlačítko máš v headeru jako odkaz na dashboard; modál si otevři vlastní akcí) ---
 document.addEventListener('keydown', (e)=>{ if(e.key==='m' && e.altKey){ milestonesModal.classList.toggle('hidden'); }});
