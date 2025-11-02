@@ -100,18 +100,26 @@
     </section>
 
     <!-- PANEL: KARUSEL -->
-    <section id="cfg-carousel" class="card tabpanel hidden" role="tabpanel" aria-labelledby="tab-carousel">
-      <h2 style="margin-top:0">Karusel – obrázky a popisky</h2>
-      <div class="stack" style="margin-bottom:12px">
-        <div class="row" style="flex-wrap:wrap">
-          <input id="carBaseUrl" class="input" placeholder="Base URL na GitHubu (bez lomítka na konci), např. https://raw.githubusercontent.com/.../main/images" />
-          <input id="carCount" class="input" type="number" placeholder="Počet snímků (N)" style="max-width:160px" />
-          <button class="btn" id="carSaveCfg">Uložit nastavení</button>
-        </div>
-        <div class="muted">Souborové názvy: <code>P1..PN</code> s příponami <code>.jpg/.jpeg/.png/.webp</code> (zkouší se automaticky).</div>
-      </div>
-      <div id="carSlidesForm" class="stack"></div>
-    </section>
+<section id="cfg-carousel" class="card tabpanel hidden">
+  <h2 style="margin-top:0">Karusel – obrázky a popisky</h2>
+
+  <!-- Nastavení -->
+  <div class="stack" style="margin-bottom:12px">
+    <div class="row" style="flex-wrap:wrap; gap:8px">
+      <input id="carBaseUrl" class="input" placeholder="Base URL na GitHubu (bez koncového /), např. https://raw.githubusercontent.com/…/main/images" />
+      <input id="carCount" class="input" type="number" placeholder="Počet snímků (N)" style="max-width:160px" />
+      <button class="btn" id="carSaveCfg">Uložit nastavení</button>
+    </div>
+    <div class="md-help">
+      Soubory obrázků na GitHubu: <code>P1..PN</code> s příponami <code>.jpg/.jpeg/.png/.webp</code> (zkouší se automaticky).<br>
+      Popisky podporují <b>Markdown</b> (tučné, kurzíva, odrážky, citace, odkazy) a emoji 😊.
+    </div>
+  </div>
+
+  <!-- Editor snímků -->
+  <div id="carSlidesForm" class="stack"></div>
+</section>
+
   </main>
 
   <!-- Skripty: UI (header, footer, sníh, SVG pozadí), guard a logika manageru -->
