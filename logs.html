@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Historie bodů • Vánoční výzva 2025</title>
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <style>
+    .filters { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; }
+    .pager { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
+    .table { width:100%; border-collapse: collapse; }
+    .table th, .table td { padding:8px; border-bottom:1px solid rgba(0,0,0,.08); text-align:left; }
+    .table th { font-weight:700; }
+    .delta-plus { color: var(--green, #0a8); font-weight:700; }
+    .delta-minus { color: var(--red, #d22); font-weight:700; }
+  </style>
+</head>
+<body>
+  <main class="stack" style="gap:12px">
+    <section class="card">
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <h2 style="margin:0">Historie přidaných / odebraných bodů</h2>
+        <a href="./dashboard.html" class="btn small ghost">← Zpět na Dashboard</a>
+      </div>
+      <p class="muted" id="logsHint"></p>
+    </section>
+
+    <section class="card" id="filtersCard" aria-hidden="true">
+      <h3 style="margin-top:0">Filtry (jen pro vedoucí)</h3>
+      <div class="filters">
+        <label>Operátor<br><select id="fltOperator" class="input" style="min-width:240px"></select></label>
+        <label>Od data<br><input id="fltFrom" class="input" type="date" /></label>
+        <label>Do data<br><input id="fltTo" class="input" type="date" /></label>
+        <button class="btn" id="applyFilters">Použít filtry</button>
+        <button class="btn ghost" id="clearFilters">Vymazat</button>
+        <button class="btn" id="exportCsv">Export CSV</button>
+      </div>
+      <p class="muted" style="margin-top:6px">
+        Pozn.: Při kombinaci více filtrů může Firestore vyžadovat vytvoření indexu. Pokud se objeví odkaz, klikněte na něj pro vytvoření.
+      </p>
+    </section>
+
+    <section class="card">
+      <div style="overflow:auto">
+        <table class="table" id="logsTable">
+          <thead>
+            <tr>
+              <th>Datum/čas</th>
+              <th>Operátor</th>
+              <th>Aktivita</th>
+              <th>Kategorie</th>
+              <th style="text-align:right">Body</th>
+            </tr>
+          </thead>
+          <tbody id="logsTbody"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <span id="pageInfo" class="muted"></span>
+        <button class="btn small ghost" id="prevPage" disabled>Předchozí</button>
+        <button class="btn small" id="nextPage" disabled>Další</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initTheme, initChrome } from './assets/js/ui.js?v=2025-11-02';
+    import { guard } from './assets/js/auth-guard.js?v=2025-11-02';
+    import './assets/js/logs.js?v=2025-11-02';
+
+    initTheme(); initChrome();
+    guard({ requireAuth: true, onReady(){} });
+  </script>
+</body>
+</html>
