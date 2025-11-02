@@ -1,6 +1,11 @@
 // assets/js/ranks.js
 import { db } from './firebase.js';
-import { collection, getDocs, query, orderBy, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { auth } from './firebase.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {
+  collection, getDocs, query, orderBy, doc, getDoc,
+  where, onSnapshot
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const grid = document.getElementById('ranksGrid');
 
@@ -56,40 +61,26 @@ async function loadBase(){
   }
 }
 
-(async function init(){
-  const baseUrl = await loadBase();
+/* ========= Stav ========= */
+let BASE_URL = '';
+let MILESTONES = []; // {id, threshold, label, reward, visible, image}
+let myPoints = 0;
+let unsubMyPoints = null;
 
-  // 1) Načti všechny hodnosti
-  let items = [];
-  try{
-    const qMs = query(collection(db,'milestones'), orderBy('threshold'));
-    const snap = await getDocs(qMs);
-    snap.forEach(d=>{
-      const data = d.data();
-      items.push({
-        id: d.id,
-        threshold: Number(data.threshold||0),
-        label: (data.label || ''),
-        reward: (data.reward || ''),
-        visible: data.visible !== false,               // default = true
-        image: (data.image || '').trim() || null       // název souboru bez přípony (např. "rank_01")
-      });
-    });
-  }catch(e){
-    console.error('[ranks] Chyba při čtení milestones:', e);
-    items = [];
-  }
-
-  // 2) Render
+/* ========= Render ========= */
+function render(){
+  if(!grid) return;
   grid.innerHTML = '';
-  if(!items.length){
+
+  if(!MILESTONES.length){
     const c = document.createElement('div'); c.className='card';
     c.innerHTML = `<div class="muted">Zatím nejsou nastaveny žádné hodnosti.</div>`;
-    grid.closest('.card').appendChild(c);
+    // pokud je #ranksGrid uvnitř .card, můžeme přidat vedle; jinak vložíme přímo
+    (grid.closest('.card') || grid).appendChild(c);
     return;
   }
 
-  items.forEach(m=>{
+  MILESTONES.forEach(m=>{
     const card = document.createElement('div'); card.className='card rank-card';
 
     // --- MEDIA ---
@@ -97,16 +88,16 @@ async function loadBase(){
 
     if(m.visible){
       // VIDITELNÁ hodnost — pokud má obrázek, zobraz ho
-      if(baseUrl && m.image){
-        const img = smartImg(baseUrl, m.image, m.label || 'hodnost');
+      if(BASE_URL && m.image){
+        const img = smartImg(BASE_URL, m.image, m.label || 'hodnost');
         media.innerHTML = ''; media.appendChild(img);
       } else {
         media.innerHTML = `<div class="muted">Bez obrázku</div>`;
       }
     } else {
       // SKRYTÁ hodnost — zobraz SPRÁVNÝ obrázek, ale rozmazaný (žádné secret_rank)
-      if(baseUrl && m.image){
-        const img = smartImg(baseUrl, m.image, 'tajná hodnost');
+      if(BASE_URL && m.image){
+        const img = smartImg(BASE_URL, m.image, 'tajná hodnost');
         media.innerHTML = ''; media.appendChild(img);
         media.classList.add('blurred');               // <— klíč: rozmazání přes CSS
       } else {
@@ -119,12 +110,20 @@ async function loadBase(){
     const title = document.createElement('div'); title.className='rank-title';
     const meta  = document.createElement('div'); meta.className='rank-meta';
 
+    const achieved = Number(myPoints) >= Number(m.threshold || 0);
+
+    // pilulka „Hodnost získána“ (inline styl, aby fungovalo i bez CSS doplňku)
+    const pillWon = achieved
+      ? `<span class="pill trophy" style="display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-weight:800;font-size:1em;line-height:1.1;color:#fff;background:linear-gradient(135deg,#ff7a18,#ffb347);box-shadow:0 1px 2px rgba(0,0,0,.2);">🏆 <b>Hodnost získána</b></span>`
+      : ``;
+
     if(m.visible){
-      title.innerHTML = `<b>${m.threshold}</b> bodů – ${m.label || ''}`;
+      // např. "120 bodů – Junior Elf"
+      title.innerHTML = `<b>${m.threshold}</b> bodů – ${m.label || ''} ${pillWon}`;
       meta.textContent = m.reward ? `Výhra: ${m.reward}` : '';
     } else {
-      title.innerHTML = `<span class="rank-secret">Tajné</span>`;
-      // změna logiky: NEzobrazujeme číslo prahu → místo něj "???"
+      // skrytá hodnost: ukazujeme "Tajné" + ???, ale pilulku přidáme, pokud dosaženo
+      title.innerHTML = `<span class="rank-secret">Tajné</span> ${pillWon}`;
       meta.textContent = `Práh: ??? bodů`;
     }
 
@@ -133,5 +132,59 @@ async function loadBase(){
     if(meta.textContent) card.appendChild(meta);
 
     grid.appendChild(card);
+  });
+}
+
+/* ========= Data: milestones ========= */
+async function loadMilestones(){
+  try{
+    const qMs = query(collection(db,'milestones'), orderBy('threshold'));
+    const snap = await getDocs(qMs);
+    const arr = [];
+    snap.forEach(d=>{
+      const data = d.data();
+      arr.push({
+        id: d.id,
+        threshold: Number(data.threshold||0),
+        label: (data.label || ''),
+        reward: (data.reward || ''),
+        visible: data.visible !== false,               // default = true
+        image: (data.image || '').trim() || null       // název souboru bez přípony (např. "rank_01")
+      });
+    });
+    MILESTONES = arr;
+  }catch(e){
+    console.error('[ranks] Chyba při čtení milestones:', e);
+    MILESTONES = [];
+  }
+}
+
+/* ========= Body přihlášeného v reálném čase ========= */
+function subscribeMyPoints(uid){
+  unsubMyPoints?.(); unsubMyPoints = null;
+  myPoints = 0;
+  if(!uid){ render(); return; }
+
+  const qLogs = query(collection(db,'logs'), where('uid','==', uid));
+  unsubMyPoints = onSnapshot(qLogs, (snap)=>{
+    let sum = 0;
+    snap.forEach(d => { sum += Number(d.data().delta || 0); });
+    myPoints = sum;
+    render(); // přerenderuj hodnosti s novým stavem
+  }, (err)=>{
+    console.warn('[ranks] onSnapshot logs selhal:', err);
+  });
+}
+
+/* ========= Init ========= */
+(async function init(){
+  BASE_URL = await loadBase();
+  await loadMilestones();
+
+  // první render (bez bodů / nebo 0) – následně se zaktualizuje po auth
+  render();
+
+  onAuthStateChanged(auth, (u)=>{
+    subscribeMyPoints(u?.uid || null); // po přihlášení/změně uživatele přepočítej
   });
 })();
