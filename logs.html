@@ -6,7 +6,16 @@
   <title>Historie bodů • Vánoční výzva 2025</title>
   <link rel="stylesheet" href="./assets/css/styles.css" />
   <style>
-    .filters { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; }
+    .filters {
+      display:flex;
+      gap:16px 20px;         /* větší rozestupy */
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+    .filters > * { min-width: 180px; }
+    @media (max-width: 720px){
+      .filters > * { flex: 1 1 100%; } /* na mobilu pod sebe */
+    }
     .pager { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
     .table { width:100%; border-collapse: collapse; }
     .table th, .table td { padding:8px; border-bottom:1px solid rgba(0,0,0,.08); text-align:left; }
@@ -31,7 +40,7 @@
         <label>Operátor<br><select id="fltOperator" class="input" style="min-width:240px"></select></label>
         <label>Od data<br><input id="fltFrom" class="input" type="date" /></label>
         <label>Do data<br><input id="fltTo" class="input" type="date" /></label>
-        <button class="btn" id="applyFilters">Použít filtry</button>
+        <button class="btn" id="applyFilters" style="margin-left:auto">Použít filtry</button>
         <button class="btn ghost" id="clearFilters">Vymazat</button>
         <button class="btn" id="exportCsv">Export CSV</button>
       </div>
@@ -49,7 +58,9 @@
               <th>Operátor</th>
               <th>Aktivita</th>
               <th>Kategorie</th>
+              <th>Zadal</th>
               <th style="text-align:right">Body</th>
+              <th id="thActions" style="width:1%"></th>
             </tr>
           </thead>
           <tbody id="logsTbody"></tbody>
@@ -64,9 +75,9 @@
   </main>
 
   <script type="module">
-    import { initTheme, initChrome } from './assets/js/ui.js?v=2025-11-02';
-    import { guard } from './assets/js/auth-guard.js?v=2025-11-02';
-    import './assets/js/logs.js?v=2025-11-02';
+    import { initTheme, initChrome } from './assets/js/ui.js?v=2025-11-02-2';
+    import { guard } from './assets/js/auth-guard.js?v=2025-11-02-2';
+    import './assets/js/logs.js?v=2025-11-02-2';
 
     initTheme(); initChrome();
     guard({ requireAuth: true, onReady(){} });
