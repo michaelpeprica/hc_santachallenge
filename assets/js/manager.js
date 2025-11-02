@@ -189,10 +189,6 @@ document.getElementById('assignRole')?.addEventListener('click', async()=>{
 /* ===========================
    === Karusel – nastavení + editor snímků (Markdown + emoji) ===
    =========================== */
-import {
-  doc, getDoc, setDoc, collection, getDocs, query, orderBy, updateDoc
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-
 const carBaseUrl = document.getElementById('carBaseUrl');
 const carCount   = document.getElementById('carCount');
 const carSaveCfg = document.getElementById('carSaveCfg');
