@@ -332,3 +332,6 @@ async function buildAvatarGrid(){
 
 // Otevření avatar modálu přes klávesu Alt+A (můžeš si udělat i tlačítko)
 document.addEventListener('keydown', (e)=>{ if(e.altKey && (e.key==='a' || e.key==='A')){ buildAvatarGrid(); avatarModal.classList.remove('hidden'); }});
+
+window.addEventListener('avatar-changed', ()=> refreshLeaderboard());
+
