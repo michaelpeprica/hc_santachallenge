@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Vedoucí • Vánoční výzva 2025</title>
   <link rel="stylesheet" href="./assets/css/styles.css" />
-  <!-- Volitelně: základní reset pro jistotu -->
   <style>
-    /* Základní fixy pro případ, že se něco „rozbilo“ v globálním CSS */
     html, body { height: 100%; }
     body { margin: 0; }
-    main { margin-top: 12px; } /* jemná mezera pod headerem */
+    main { margin-top: 12px; }
     .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
     .tab { cursor:pointer; }
     .tabpanel.hidden { display: none; }
@@ -23,7 +21,6 @@
 </head>
 <body>
   <main>
-    <!-- ZÁLOŽKY -->
     <div class="tabs" role="tablist" aria-label="Nastavení manager">
       <button class="tab active" data-tab="cfg-activities" role="tab" aria-selected="true">Aktivity</button>
       <button class="tab" data-tab="cfg-milestones" role="tab" aria-selected="false">Hodnosti</button>
@@ -32,7 +29,7 @@
       <button class="tab" data-tab="cfg-carousel" role="tab" aria-selected="false">Karusel</button>
     </div>
 
-    <!-- PANEL: AKTIVITY -->
+    <!-- Aktivity -->
     <section id="cfg-activities" class="card tabpanel" role="tabpanel" aria-labelledby="tab-activities">
       <h2 style="margin-top:0">Nastavení aktivit</h2>
       <div class="row" style="flex-wrap:wrap">
@@ -48,7 +45,7 @@
       <div id="activitiesList" class="stack" style="margin-top:8px"></div>
     </section>
 
-    <!-- PANEL: HODNOSTI -->
+    <!-- Hodnosti -->
     <section id="cfg-milestones" class="card tabpanel hidden" role="tabpanel" aria-labelledby="tab-milestones">
       <h2 style="margin-top:0">Hodnosti</h2>
       <div class="row" style="flex-wrap:wrap">
@@ -63,7 +60,7 @@
       <div id="milestonesList" class="stack" style="margin-top:8px"></div>
     </section>
 
-    <!-- PANEL: ROLE / OPERÁTOŘI -->
+    <!-- Role -->
     <section id="cfg-roles" class="card tabpanel hidden" role="tabpanel" aria-labelledby="tab-roles">
       <h2 style="margin-top:0">Operátoři – role a jména</h2>
       <div class="row" style="flex-wrap:wrap">
@@ -81,7 +78,7 @@
       <div id="rolesList" class="stack" style="margin-top:8px"></div>
     </section>
 
-    <!-- PANEL: NÁSTROJE -->
+    <!-- Nástroje -->
     <section id="cfg-utils" class="card tabpanel hidden" role="tabpanel" aria-labelledby="tab-utils">
       <h2 style="margin-top:0">Nástroje</h2>
       <div class="stack">
@@ -99,46 +96,41 @@
       <p class="muted">Pozn.: Bez Cloud Functions probíhá přepočet na klientovi. Žebříček je ze součtu dokumentů v <code>logs</code>. Audit v <code>audits</code>.</p>
     </section>
 
-    <!-- PANEL: KARUSEL -->
-<section id="cfg-carousel" class="card tabpanel hidden">
-  <h2 style="margin-top:0">Karusel – obrázky a popisky</h2>
+    <!-- Karusel -->
+    <section id="cfg-carousel" class="card tabpanel hidden">
+      <h2 style="margin-top:0">Karusel – obrázky a popisky</h2>
 
-  <!-- Nastavení -->
-  <div class="stack" style="margin-bottom:12px">
-    <div class="row" style="flex-wrap:wrap; gap:8px">
-      <input id="carBaseUrl" class="input" placeholder="Base URL na GitHubu (bez koncového /), např. https://raw.githubusercontent.com/…/main/images" />
-      <input id="carCount" class="input" type="number" placeholder="Počet snímků (N)" style="max-width:160px" />
-      <button class="btn" id="carSaveCfg">Uložit nastavení</button>
-    </div>
-    <div class="md-help">
-      Soubory obrázků na GitHubu: <code>P1..PN</code> s příponami <code>.jpg/.jpeg/.png/.webp</code> (zkouší se automaticky).<br>
-      Popisky podporují <b>Markdown</b> (tučné, kurzíva, odrážky, citace, odkazy) a emoji 😊.
-    </div>
-  </div>
+      <div class="stack" style="margin-bottom:12px">
+        <div class="row" style="flex-wrap:wrap; gap:8px">
+          <input id="carBaseUrl" class="input" placeholder="Base URL na GitHubu (bez koncového /), např. https://raw.githubusercontent.com/…/main/images" />
+          <input id="carCount" class="input" type="number" placeholder="Počet snímků (N)" style="max-width:160px" />
+          <button class="btn" id="carSaveCfg">Uložit nastavení</button>
+        </div>
+        <div class="md-help">
+          Soubory obrázků na GitHubu: <code>P1..PN</code> s příponami <code>.jpg/.jpeg/.png/.webp</code> (zkouší se automaticky).<br>
+          Popisky podporují <b>Markdown</b> (tučné, kurzíva, odrážky, citace, odkazy) a emoji 😊.<br>
+          Každý snímek lze <b>skrýt</b> nebo <b>zobrazit</b> pomocí přepínače.
+        </div>
+      </div>
 
-  <!-- Editor snímků -->
-  <div id="carSlidesForm" class="stack"></div>
-</section>
-
+      <div id="carSlidesForm" class="stack"></div>
+    </section>
   </main>
 
-  <!-- Skripty: UI (header, footer, sníh, SVG pozadí), guard a logika manageru -->
   <script type="module">
-    import { initTheme, initChrome } from './assets/js/ui.js?v=2025-11-01-2';
-    import { guard } from './assets/js/auth-guard.js?v=2025-11-01-1';
-    import './assets/js/manager.js?v=2025-11-01-2';
+    import { initTheme, initChrome } from './assets/js/ui.js?v=2025-11-02-1';
+    import { guard } from './assets/js/auth-guard.js?v=2025-11-02-1';
+    import './assets/js/manager.js?v=2025-11-02-1';
 
-    // Nastaví téma, vykreslí header+footer+pozadí a zkontroluje oprávnění manažera
     initTheme();
     initChrome();
     guard({
       requireAuth: true,
       requireManager: true,
-      onReady(){ /* stránka se normálně používá */ },
-      onDenied(){ location.href = './denied.html'; } // <— přesměrování pro operátory / bez role
+      onReady(){},
+      onDenied(){ location.href = './denied.html'; }
     });
 
-    // Jednoduchý tab-switcher (pro případ, že globální logika chybí)
     const tabs = document.querySelectorAll('.tabs .tab');
     const panels = document.querySelectorAll('.tabpanel');
     tabs.forEach(btn=>{
