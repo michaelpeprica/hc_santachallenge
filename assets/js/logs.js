@@ -9,6 +9,13 @@ import {
 const PAGE_SIZE = 20;
 const OPERATOR_ROLES = new Set(['operator_tel','operator_kore','operator_tel_kore']);
 
+// ↑ NOVÉ: popisky kategorií pro UI i CSV
+const CATEGORY_LABELS = {
+  tel_weekly : 'Telefonie – týdenní',
+  kore_static: 'Korespondence – stálé'
+};
+function categoryLabel(cat){ return CATEGORY_LABELS[cat] || (cat || ''); }
+
 const hintEl = document.getElementById('logsHint');
 const fltCard = document.getElementById('filtersCard');
 const fltOperator = document.getElementById('fltOperator');
@@ -151,15 +158,16 @@ function renderRows(items){
     const sign = Number(l.delta)>=0 ? '+' : '';
     const cls  = Number(l.delta)>=0 ? 'delta-plus' : 'delta-minus';
 
-    const who  = esc(l.userName || l.userEmail || l.uid || '');
-    const actor= esc(l.actorName || l.actorEmail || l.actorUid || '');
+    const who   = esc(l.userName || l.userEmail || l.uid || '');
+    const actor = esc(l.actorName || l.actorEmail || l.actorUid || '');
+    const catLb = esc(categoryLabel(l.category)); // ← místo raw hodnoty
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${fmtDate(l.createdAt)}</td>
       <td>${who}</td>
       <td>${esc(l.activityName||l.activityId||'')}</td>
-      <td>${esc(l.category||'')}</td>
+      <td>${catLb}</td>
       <td>${actor}</td>
       <td style="text-align:right" class="${cls}">${sign}${Number(l.delta||0)}</td>
       <td class="muted" style="text-align:right"></td>
@@ -218,7 +226,7 @@ async function exportCsvAll(){
         l.userEmail || '',
         l.activityId || '',
         l.activityName || '',
-        l.category || '',
+        categoryLabel(l.category), // ← exportujeme popisek
         String(l.delta ?? ''),
         l.actorUid || '',
         l.actorName || '',
