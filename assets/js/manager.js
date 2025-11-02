@@ -186,63 +186,147 @@ document.getElementById('assignRole')?.addEventListener('click', async()=>{
   buildUsersForManager();
 });
 
-// === Carousel (settings + titles/descriptions) ===
+/* ===========================
+   === Karusel – nastavení + editor snímků (Markdown + emoji) ===
+   =========================== */
+import {
+  doc, getDoc, setDoc, collection, getDocs, query, orderBy, updateDoc
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
 const carBaseUrl = document.getElementById('carBaseUrl');
-const carCount = document.getElementById('carCount');
+const carCount   = document.getElementById('carCount');
 const carSaveCfg = document.getElementById('carSaveCfg');
 const carSlidesForm = document.getElementById('carSlidesForm');
 
-async function loadCarouselCfg(){
-  const s = await getDoc(doc(db,'settings','carousel'));
-  const base = s.exists() ? (s.data().base_url || '') : '';
-  const count = s.exists() ? Number(s.data().count || 0) : 0;
-  carBaseUrl.value = base;
+/* Markdown → HTML (bezpečný, základní) */
+function mdToHtml(md){
+  if(!md) return '';
+  // escapování
+  let html = md.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  // inline formáty
+  html = html
+    .replace(/\*\*(.*?)\*\*/g,"<b>$1</b>")
+    .replace(/\*(.*?)\*/g,"<i>$1</i>")
+    .replace(/__(.*?)__/g,"<u>$1</u>")
+    .replace(/`([^`]+)`/g,"<code>$1</code>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  // bloky
+  html = html
+    .replace(/^> (.*)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/^- (.*)$/gm,'<li>$1</li>');
+  // seznamy
+  html = html.replace(/(<li>.*<\/li>)/gs,'<ul>$1</ul>');
+  // odstavce a řádky
+  html = html.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
+  return `<p>${html}</p>`;
+}
+
+/* Načtení a zobrazení nastavení karuselu */
+async function loadCarouselSettings(){
+  const sRef = doc(db,'settings','carousel');
+  const s = await getDoc(sRef);
+  const base_url = s.exists()? (s.data().base_url||'').replace(/\/$/,'') : '';
+  const count = s.exists()? Number(s.data().count||0) : 0;
+  carBaseUrl.value = base_url;
   carCount.value = String(count||0);
-  await renderCarouselSlides(count);
+  await buildSlidesEditor(count);
 }
 
-async function renderCarouselSlides(count){
-  carSlidesForm.innerHTML = '';
-  // načti existující metas
-  const metas = {};
-  const snap = await getDocs(query(collection(db,'carousel'), orderBy('__name__')));
-  snap.forEach(d=>{ metas[d.id] = d.data(); });
-
-  for(let i=1;i<=count;i++){
-    const id = String(i); // dokument carousel/{i}
-    const m = metas[id] || {};
-    const row = document.createElement('div'); row.className='card';
-    row.innerHTML = `
-      <div class="row" style="gap:8px; align-items:flex-start; flex-wrap:wrap">
-        <div style="width:60px">#${i}</div>
-        <input class="input" data-car-title="${id}" placeholder="Titulek snímku" value="${m.title || ''}" style="flex:1; min-width:200px" />
-        <input class="input" data-car-desc="${id}" placeholder="Popis snímku" value="${m.desc || ''}" style="flex:2; min-width:280px" />
-        <button class="btn small ghost" data-car-save="${id}">Uložit</button>
-        <button class="btn small ghost" data-car-clear="${id}">Vyčistit</button>
-      </div>`;
-    carSlidesForm.appendChild(row);
-
-    row.querySelector(`[data-car-save="${id}"]`).addEventListener('click', async ()=>{
-      const title = row.querySelector(`[data-car-title="${id}"]`).value.trim();
-      const desc  = row.querySelector(`[data-car-desc="${id}"]`).value.trim();
-      await setDoc(doc(db,'carousel', id), { title, desc }, { merge:true });
-      alert(`Uloženo: snímek ${i}`);
-    });
-    row.querySelector(`[data-car-clear="${id}"]`).addEventListener('click', async ()=>{
-      await setDoc(doc(db,'carousel', id), { title:'', desc:'' }, { merge:true });
-      row.querySelector(`[data-car-title="${id}"]`).value = '';
-      row.querySelector(`[data-car-desc="${id}"]`).value  = '';
-    });
-  }
-}
-
-carSaveCfg?.addEventListener('click', async ()=>{
-  const base = carBaseUrl.value.trim().replace(/\/$/,'');
-  const count = Math.max(0, parseInt(carCount.value||'0',10));
-  await setDoc(doc(db,'settings','carousel'), { base_url: base, count }, { merge:true });
-  await renderCarouselSlides(count);
-  alert('Nastavení karuselu uloženo');
+/* Uložení nastavení (base_url, count) */
+carSaveCfg?.addEventListener('click', async()=>{
+  const base = (carBaseUrl.value||'').trim().replace(/\/$/,'');
+  const count = Math.max(0, Number(carCount.value||0)|0);
+  if(!base){ return alert('Zadejte base_url.'); }
+  try{
+    await setDoc(doc(db,'settings','carousel'), { base_url: base, count }, { merge:true });
+    await buildSlidesEditor(count);
+    alert('Nastavení uloženo.');
+  }catch(e){ alert('Uložení nastavení selhalo: '+(e?.message||e)); }
 });
+
+/* Postaví formulář editoru pro N snímků a načte metadata z kolekce carousel */
+async function buildSlidesEditor(count){
+  carSlidesForm.innerHTML = '';
+  if(!count || count<1){
+    const note = document.createElement('div'); note.className='muted';
+    note.textContent = 'Zadejte a uložte počet snímků (count) a base_url. Poté se objeví formuláře pro popisky.';
+    carSlidesForm.appendChild(note);
+    return;
+  }
+
+  // načti existující docs carousel, abychom předvyplnili
+  const meta = Array.from({length: count}, (_,i)=>({ title:`Snímek ${i+1}`, desc:'' }));
+  try{
+    const snap = await getDocs(query(collection(db,'carousel'), orderBy('__name__')));
+    snap.forEach(d=>{
+      const m = d.id.match(/\d+/); if(!m) return;
+      const idx=(parseInt(m[0],10)||0)-1;
+      if(idx>=0 && idx<meta.length){
+        const x = d.data();
+        meta[idx].title = x.title || meta[idx].title;
+        meta[idx].desc  = x.desc  || meta[idx].desc;
+      }
+    });
+  }catch(e){
+    console.warn('[manager] Nelze načíst carousel meta:', e);
+  }
+
+  // vygeneruj N editorů
+  meta.forEach((m, i)=>{
+    const id = i+1; // 1..N
+    const card = document.createElement('div'); card.className='card';
+    card.innerHTML = `
+      <div class="stack">
+        <div class="row" style="justify-content:space-between; align-items:center">
+          <div><b>P${id}</b> – metadata</div>
+          <button class="btn small" data-save="${id}">Uložit</button>
+        </div>
+        <input class="input" data-title="${id}" placeholder="Titulek snímku" value="${(m.title||'').replace(/"/g,'&quot;')}" />
+        <div class="row" style="gap:8px; align-items:flex-start; flex-wrap:wrap">
+          <textarea class="input" data-desc="${id}" rows="5" style="min-width:280px; flex:1" placeholder="Popis v Markdownu (emoji fungují)">${m.desc||''}</textarea>
+          <div class="md-preview" data-preview="${id}">${mdToHtml(m.desc||'')}</div>
+        </div>
+        <div class="md-help">
+          Markdown: <code>**tučně**</code>, <code>*kurzíva*</code>, <code>__podtržení__</code>, <code>\`kód\`</code>, <code>- položka</code>, <code>> citace</code>, <code>[odkaz](https://...)</code><br>
+          Enter = nový řádek, 2× Enter = odstavec. Emoji vkládej přímo (např. 🎄✨).
+        </div>
+      </div>
+    `;
+    carSlidesForm.appendChild(card);
+
+    const descEl = card.querySelector(`[data-desc="${id}"]`);
+    const prevEl = card.querySelector(`[data-preview="${id}"]`);
+    const titleEl = card.querySelector(`[data-title="${id}"]`);
+
+    // živý náhled na změnu
+    descEl.addEventListener('input', ()=> prevEl.innerHTML = mdToHtml(descEl.value||''));
+
+    // uložení jednoho snímku
+    card.querySelector(`[data-save="${id}"]`)?.addEventListener('click', async()=>{
+      try{
+        await setDoc(doc(db,'carousel', String(id)), {
+          title: (titleEl.value||'').trim(),
+          desc:  (descEl.value||'').trim()
+        }, { merge:true });
+        alert(`P${id}: Uloženo.`);
+      }catch(e){
+        alert(`P${id}: Uložení selhalo: `+(e?.message||e));
+      }
+    });
+  });
+}
+
+// spustit při vstupu na panel „Karusel“ – pokud používáš tabs per JS, zavolej při aktivaci
+// Pokud máš vlastní tab-switcher, zajisti, aby se při otevření „Karusel“ spustilo:
+document.querySelector('[data-tab="cfg-carousel"]')?.addEventListener('click', ()=>{
+  // refresh nastavení a formulářů po každém otevření panelu
+  loadCarouselSettings().catch(e=>console.error(e));
+});
+
+// pro případ prvního načtení (když je tab aktivní z URL)
+if(!document.getElementById('cfg-carousel')?.classList.contains('hidden')){
+  loadCarouselSettings().catch(()=>{});
+}
 
 // === Weekly info ===
 async function ensureSettingsDocExists(){
