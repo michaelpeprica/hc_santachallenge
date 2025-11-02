@@ -38,7 +38,7 @@ async function loadConfig(){
 }
 
 async function loadSlidesMeta(count){
-  const metas = Array.from({length: count}, (_,i)=>({ title:`Snímek ${i+1}`, desc:'' }));
+  const metas = Array.from({length: count}, (_,i)=>({ title:`Snímek ${i+1}`, desc:'', visible:true }));
   try{
     const snap = await getDocs(query(collection(db,'carousel'), orderBy('__name__')));
     snap.forEach(d=>{
@@ -47,8 +47,9 @@ async function loadSlidesMeta(count){
       if(idx>=0 && idx<metas.length){
         const data = d.data();
         metas[idx] = {
-          title: data.title || metas[idx].title,
-          desc:  data.desc  || metas[idx].desc,
+          title:   data.title || metas[idx].title,
+          desc:    data.desc  || metas[idx].desc,
+          visible: (data.visible !== false) // default: true
         };
       }
     });
@@ -69,12 +70,10 @@ function createSmartImage(fullBase){
       img.src = `${fullBase}.${EXT[i++]}`;
     } else if(!placed){
       placed = true;
-      // když nic, necháme prázdno – ale nepadáme
       console.warn('[carousel] Obrázek nenalezen pro', fullBase);
     }
   }
   img.addEventListener('error', tryNext);
-  // režim cover přepínatelný dvojklikem / Z
   img.addEventListener('dblclick', ()=> img.classList.toggle('cover'));
   return (tryNext(), img);
 }
@@ -110,19 +109,18 @@ function mdToHtml(md){
     .replace(/^- (.*)$/gm,'<li>$1</li>')
     .replace(/\n{2,}/g,'</p><p>')
     .replace(/\n/g,'<br>');
-  // seznamy
   html = html.replace(/(<li>.*<\/li>)/gs,'<ul>$1</ul>');
-  // zabal do <p>
   return `<p>${html}</p>`;
 }
 
 // --- Aktualizace karuselu s markdown popisky ---
 function update(){
   if(total===0){
-    titleEl.textContent = 'Žádné snímky';
-    descEl.textContent  = 'V manageru nastavte base_url a count (settings/carousel). Poté nahrajte P1..PN do GitHubu.';
+    titleEl.textContent = 'Žádné viditelné snímky';
+    descEl.textContent  = 'Ve vedoucím nastavení karuselu jsou všechny snímky skryté, nebo není nastaveno base_url / count.';
     metaEl.textContent  = '';
     track.style.transform = 'translateX(0)';
+    document.title = 'Karusel – bez snímků';
     return;
   }
   track.style.transform = `translateX(${-index*100}%)`;
@@ -132,7 +130,6 @@ function update(){
   metaEl.textContent  = `${index+1} / ${total}`;
   document.title = `${s.title || `Snímek ${index+1}`} – Karusel`;
 }
-
 
 function goTo(i){ if(total===0) return; index=(i+total)%total; update(); }
 const next = ()=> goTo(index+1);
@@ -175,13 +172,11 @@ function resizeViewport(){
   const main = document.querySelector('main');
   if(!main) return;
 
-  // celkový prostor pro hlavní obsah (bez scrollu)
   const totalH = Math.max(0, wh - headerH - footerH);
   main.style.height = totalH + "px";
   main.style.boxSizing = 'border-box';
   main.style.overflow = 'hidden';
 
-    // zachovej správný aspect poměr (2:3) v rámci výšky okna
   const viewports = document.querySelectorAll('.viewport');
   viewports.forEach(vp => {
     const fig = vp.querySelector('figure');
@@ -199,7 +194,6 @@ function resizeViewport(){
     }
   });
 
-  // info panel může uvnitř scrollovat, ale nevyjede ven
   const cs = getComputedStyle(main);
   const padTop = parseFloat(cs.paddingTop)||0;
   const padBottom = parseFloat(cs.paddingBottom)||0;
@@ -226,17 +220,22 @@ window.addEventListener('orientationchange', ()=>setTimeout(resizeViewport, 50))
     resizeViewport();
 
     const { base_url, count } = await loadConfig();
-    if(!count || count<1){
+    if(!count || count<1 || !base_url){
       slides = [];
       renderSlides();
       return;
     }
 
     const meta = await loadSlidesMeta(count);
-    slides = meta.map((m, i)=>({
+    // pouze VIDITELNÉ snímky
+    const visibleMeta = meta
+      .map((m, i)=> ({...m, idx:i+1}))
+      .filter(m=> m.visible);
+
+    slides = visibleMeta.map((m)=>({
       title: m.title,
       desc:  m.desc,
-      base:  base_url ? `${base_url}/P${i+1}` : ''  // P1..PN.(ext)
+      base:  `${base_url}/P${m.idx}`  // P1..PN.(ext)
     }));
 
     renderSlides();
