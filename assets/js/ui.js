@@ -220,19 +220,23 @@ async function openAvatarPicker(){
   const saveBtn = document.createElement('button');
   saveBtn.className = 'btn';
   saveBtn.textContent = 'Uložit';
-  saveBtn.addEventListener('click', async ()=>{
-    try{
-      await setDoc(doc(db,'operators', u.uid), { avatar: selected || null }, { merge:true });
-      await renderAccountArea(u);       // okamžitě obnov header
-      // 👉 informuj ostatní stránky/skripty (dashboard) ať hned přerenderují
-      window.dispatchEvent(new CustomEvent('avatar-changed', { detail:{ uid:u.uid, avatar:selected||null }}));
-      close();
-      alert('Avatar uložen.');
-    }catch(err){
-      console.error('[ui] Ukládání avataru selhalo:', err);
-      alert('Nepodařilo se uložit avatar.');
-    }
-  });
+saveBtn.addEventListener('click', async ()=>{
+  try{
+    await setDoc(doc(db,'operators', u.uid), { avatar: selected || null }, { merge:true });
+    await renderAccountArea(u);
+
+    // 👉 cache-busting pro obrázky v jiných modulech
+    window.__avatarNonce = Date.now();
+    // 👉 oznámíme změnu napříč stránkou
+    window.dispatchEvent(new CustomEvent('avatar-changed', { detail:{ uid:u.uid, avatar:selected||null }}));
+
+    close();
+    alert('Avatar uložen.');
+  }catch(err){
+    console.error('[ui] Ukládání avataru selhalo:', err);
+    alert('Nepodařilo se uložit avatar.');
+  }
+});
   overlay.querySelector('.actions')?.appendChild(saveBtn);
 }
 
