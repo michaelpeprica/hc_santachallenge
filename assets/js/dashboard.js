@@ -27,7 +27,7 @@ function includeActivityThisWeek(a, role){
   if(!allowedCategoriesFor(role).includes(a.category)) return false;
   return true;
 }
-function escapeHtml(str){ return (str||'').replace(/[&<>\"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s])); }
+function escapeHtml(str){ return (str||'').replace(/[&<>\"']/g, s=>({"&":"&amp;","<":"&lt;","&gt;":">","\"":"&quot;","'":"&#39;"}[s])); }
 function renderWeekInfoText(raw){
   let txt = escapeHtml(raw || '');
   txt = txt.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
@@ -236,9 +236,20 @@ addPointsBtn?.addEventListener('click', async()=>{
   let targetProfile = null;
   try{ const tSnap = await getDoc(doc(db,'operators', targetUid)); targetProfile = tSnap.exists()? {id:tSnap.id, ...tSnap.data()} : null; }catch{}
 
-  const logEntry = { uid: targetUid, activityId: actId, activityName: a.name||actId, category: a.category, delta, createdAt: serverTimestamp() };
+  // === LOG: rozšířený o jméno/e-mail cíle a zadavatele ===
+  const logEntry = {
+    uid: targetUid,
+    userName:  targetProfile?.displayName || targetProfile?.email || targetUid,
+    userEmail: targetProfile?.email || '',
+    activityId: actId, activityName: a.name||actId, category: a.category, delta,
+    actorUid: currentUser.uid,
+    actorName:  currentOperatorProfile?.displayName || currentUser.displayName || currentUser.email,
+    actorEmail: currentUser.email,
+    createdAt: serverTimestamp()
+  };
   await addDoc(collection(db,'logs'), logEntry);
 
+  // audit necháváme beze změny
   const auditEntry = {
     actorUid: currentUser.uid, actorEmail: currentUser.email,
     actorName: currentOperatorProfile?.displayName || currentUser.displayName || currentUser.email,
@@ -343,10 +354,14 @@ async function refreshLeaderboard(){
 /* ============ Moje poslední logy (jen 3) ============ */
 async function loadMyRecent(){
   if(!currentUser){ myRecent.innerHTML=''; return; }
-  myRecent.innerHTML = '';
+  myRecent.innerHTML = ''; // jistota proti duplikaci
   try{
-    // LIMIT 3
-    const ql = query(collection(db,'logs'), where('uid','==', currentUser.uid), orderBy('createdAt','desc'), limit(3));
+    const ql = query(
+      collection(db,'logs'),
+      where('uid','==', currentUser.uid),
+      orderBy('createdAt','desc'),
+      limit(3) // <— opravdu jen 3
+    );
     const snap = await getDocs(ql);
     const arr=[]; snap.forEach(d=>arr.push({id:d.id, ...d.data()}));
     if(!arr.length){ myRecent.innerHTML = '<div class="muted">Zatím žádné záznamy.</div>'; return; }
