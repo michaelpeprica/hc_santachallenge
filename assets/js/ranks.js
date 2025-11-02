@@ -75,7 +75,6 @@ function render(){
   if(!MILESTONES.length){
     const c = document.createElement('div'); c.className='card';
     c.innerHTML = `<div class="muted">Zatím nejsou nastaveny žádné hodnosti.</div>`;
-    // pokud je #ranksGrid uvnitř .card, můžeme přidat vedle; jinak vložíme přímo
     (grid.closest('.card') || grid).appendChild(c);
     return;
   }
@@ -99,9 +98,8 @@ function render(){
       if(BASE_URL && m.image){
         const img = smartImg(BASE_URL, m.image, 'tajná hodnost');
         media.innerHTML = ''; media.appendChild(img);
-        media.classList.add('blurred');               // <— klíč: rozmazání přes CSS
+        media.classList.add('blurred');               // rozmazání přes CSS
       } else {
-        // Nemáme image → decentní fallback
         media.innerHTML = `<div class="muted">Tajné (bez obrázku)</div>`;
       }
     }
@@ -111,20 +109,18 @@ function render(){
     const meta  = document.createElement('div'); meta.className='rank-meta';
 
     const achieved = Number(myPoints) >= Number(m.threshold || 0);
-
-    // pilulka „Hodnost získána“ (inline styl, aby fungovalo i bez CSS doplňku)
     const pillWon = achieved
       ? `<span class="pill trophy" style="display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-weight:800;font-size:1em;line-height:1.1;color:#fff;background:linear-gradient(135deg,#ff7a18,#ffb347);box-shadow:0 1px 2px rgba(0,0,0,.2);">🏆 <b>Hodnost získána</b></span>`
       : ``;
 
     if(m.visible){
-      // např. "120 bodů – Junior Elf"
+      // viditelná: ukazujeme prah bodů + název + (případně výhru)
       title.innerHTML = `<b>${m.threshold}</b> bodů – ${m.label || ''} ${pillWon}`;
       meta.textContent = m.reward ? `Výhra: ${m.reward}` : '';
     } else {
-      // skrytá hodnost: ukazujeme "Tajné" + ???, ale pilulku přidáme, pokud dosaženo
-      title.innerHTML = `<span class="rank-secret">Tajné</span> ${pillWon}`;
-      meta.textContent = `Práh: ??? bodů`;
+      // SKRYTÁ: nová logika – zobrazit skutečný název hodnosti, ale neukazovat prah ani výhru
+      title.innerHTML = `${m.label || 'Hodnost'} ${pillWon}`;
+      meta.textContent = ''; // žádná výhra ani body
     }
 
     card.appendChild(media);
