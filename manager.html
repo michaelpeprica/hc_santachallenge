@@ -14,9 +14,7 @@
     .tabpanel.hidden { display: none; }
     .row { display:flex; gap:8px; align-items:center; }
     .stack { display:flex; flex-direction:column; gap:8px; }
-    @media (max-width: 720px) {
-      .row { flex-wrap: wrap; }
-    }
+    @media (max-width: 720px) { .row { flex-wrap: wrap; } }
   </style>
 </head>
 <body>
@@ -78,22 +76,16 @@
       <div id="rolesList" class="stack" style="margin-top:8px"></div>
     </section>
 
-    <!-- Nástroje -->
+    <!-- Nástroje – ponecháno pouze „Tento týden“ -->
     <section id="cfg-utils" class="card tabpanel hidden" role="tabpanel" aria-labelledby="tab-utils">
       <h2 style="margin-top:0">Nástroje</h2>
       <div class="stack">
-        <div class="row" style="flex-wrap:wrap">
-          <button class="btn ghost" id="recomputeLeaderboard">Přepočítat žebříček (klientsky)</button>
-          <button class="btn ghost" id="refreshAudits">Načíst Audit bodů</button>
-        </div>
         <div class="stack">
           <label for="weeklyInfoManager">Krátký popis pro sekci „Tento týden”</label>
           <textarea id="weeklyInfoManager" class="input" rows="3" placeholder="Např. **Důležité**: tento týden běží speciální sprint…"></textarea>
           <div class="row" style="justify-content:flex-end"><button class="btn" id="saveWeekInfo">Uložit popis týdne</button></div>
         </div>
-        <div id="auditsList" class="stack" style="margin-top:8px"></div>
       </div>
-      <p class="muted">Pozn.: Bez Cloud Functions probíhá přepočet na klientovi. Žebříček je ze součtu dokumentů v <code>logs</code>. Audit v <code>audits</code>.</p>
     </section>
 
     <!-- Karusel -->
@@ -108,8 +100,7 @@
         </div>
         <div class="md-help">
           Soubory obrázků na GitHubu: <code>P1..PN</code> s příponami <code>.jpg/.jpeg/.png/.webp</code> (zkouší se automaticky).<br>
-          Popisky podporují <b>Markdown</b> (tučné, kurzíva, odrážky, citace, odkazy) a emoji 😊.<br>
-          Každý snímek lze <b>skrýt</b> nebo <b>zobrazit</b> pomocí přepínače.
+          Popisky podporují <b>Markdown</b> a emoji 😊. Každý snímek lze <b>skrýt</b> nebo <b>zobrazit</b>.
         </div>
       </div>
 
@@ -118,9 +109,9 @@
   </main>
 
   <script type="module">
-    import { initTheme, initChrome } from './assets/js/ui.js?v=2025-11-02-1';
-    import { guard } from './assets/js/auth-guard.js?v=2025-11-02-1';
-    import './assets/js/manager.js?v=2025-11-02-1';
+    import { initTheme, initChrome } from './assets/js/ui.js?v=2025-11-02-2';
+    import { guard } from './assets/js/auth-guard.js?v=2025-11-02-2';
+    import './assets/js/manager.js?v=2025-11-02-2';
 
     initTheme();
     initChrome();
