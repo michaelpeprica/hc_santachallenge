@@ -4,7 +4,7 @@ import {
   doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-// Tabs
+/* ---------- Tabs ---------- */
 const tabs = document.querySelectorAll('.tab');
 const panels = document.querySelectorAll('.tabpanel');
 tabs.forEach(t=>t.addEventListener('click', ()=>{
@@ -13,7 +13,8 @@ tabs.forEach(t=>t.addEventListener('click', ()=>{
   document.getElementById(t.dataset.tab).classList.remove('hidden');
 }));
 
-// Elements
+/* ---------- Elements ---------- */
+// Activities
 const actName = document.getElementById('actName');
 const actCategory = document.getElementById('actCategory');
 const actPoints = document.getElementById('actPoints');
@@ -21,6 +22,7 @@ const actDesc = document.getElementById('actDesc');
 const addActivity = document.getElementById('addActivity');
 const activitiesList = document.getElementById('activitiesList');
 
+// Milestones
 const msThreshold = document.getElementById('msThreshold');
 const msLabel = document.getElementById('msLabel');
 const msReward = document.getElementById('msReward');
@@ -29,19 +31,28 @@ const msImage = document.getElementById('msImage');
 const addMilestone = document.getElementById('addMilestone');
 const milestonesList = document.getElementById('milestonesList');
 
+// Roles
 const userSelect = document.getElementById('userSelect');
 const roleSelect = document.getElementById('roleSelect');
 const rolesList = document.getElementById('rolesList');
 const displayNameInput = document.getElementById('displayNameInput');
 
+// Weekly Info (tools)
 const weeklyInfoManager = document.getElementById('weeklyInfoManager');
 const saveWeekInfo = document.getElementById('saveWeekInfo');
 
-const recomputeLeaderboard = document.getElementById('recomputeLeaderboard');
-const refreshAudits = document.getElementById('refreshAudits');
-const auditsList = document.getElementById('auditsList');
+// Carousel
+const carBaseUrl = document.getElementById('carBaseUrl');
+const carCount   = document.getElementById('carCount');
+const carSaveCfg = document.getElementById('carSaveCfg');
+const carSlidesForm = document.getElementById('carSlidesForm');
 
-// === Activities ===
+/* ---------- Helpers ---------- */
+function escapeHtml(str){ return (str||'').replace(/[&<>\"']/g, s=>({"&":"&amp;","<":"&lt;","&gt;":">","\"":"&quot;","'":"&#39;"}[s])); }
+
+/* ===========================
+   === Activities ===
+   =========================== */
 async function subscribeActivities(){
   const qActs = query(collection(db,'activities'), orderBy('name'));
   onSnapshot(qActs, (snap)=>{
@@ -51,8 +62,8 @@ async function subscribeActivities(){
       const row = document.createElement('div'); row.className='row';
       row.innerHTML = `
         <div class="card" style="flex:1; padding:10px; display:grid; grid-template-columns:1.2fr .6fr .8fr auto; gap:8px; align-items:center">
-          <div><b>${a.name}</b><div class="muted">${a.category}${a.desc? ' • '+a.desc: ''}</div></div>
-          <div>${a.points} bodů</div>
+          <div><b>${escapeHtml(a.name)}</b><div class="muted">${escapeHtml(a.category)}${a.desc? ' • '+escapeHtml(a.desc): ''}</div></div>
+          <div>${Number(a.points)} bodů</div>
           <div>${a.enabled? 'Aktivní' : '<span class="muted">Skryto</span>'}</div>
           <div class="row">
             <button class="btn small ghost" data-toggle="${a.id}">Přepnout</button>
@@ -80,7 +91,9 @@ addActivity?.addEventListener('click', async ()=>{
   actName.value=''; actPoints.value=''; actDesc.value='';
 });
 
-// === Milestones ===
+/* ===========================
+   === Milestones ===
+   =========================== */
 async function subscribeMilestones(){
   const qMs = query(collection(db,'milestones'), orderBy('threshold'));
   onSnapshot(qMs, (snap)=>{
@@ -142,10 +155,9 @@ addMilestone?.addEventListener('click', async()=>{
   msThreshold.value=''; msLabel.value=''; msReward.value=''; msImage.value=''; msVisible.checked=true;
 });
 
-// malá pomocná
-function escapeHtml(str){ return (str||'').replace(/[&<>\"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s])); }
-
-// === Roles / Operators ===
+/* ===========================
+   === Roles / Operators ===
+   =========================== */
 async function buildUsersForManager(){
   const opsSnap = await getDocs(query(collection(db,'operators'), orderBy('email')));
   userSelect.innerHTML = ''; rolesList.innerHTML='';
@@ -187,14 +199,10 @@ document.getElementById('assignRole')?.addEventListener('click', async()=>{
 });
 
 /* ===========================
-   === Karusel – nastavení + editor snímků (Markdown + emoji + viditelnost) ===
+   === Carousel editor (Markdown + viditelnost) ===
    =========================== */
-const carBaseUrl = document.getElementById('carBaseUrl');
-const carCount   = document.getElementById('carCount');
-const carSaveCfg = document.getElementById('carSaveCfg');
-const carSlidesForm = document.getElementById('carSlidesForm');
 
-/* Markdown → HTML (bezpečný, základní) */
+/* Markdown → HTML (základní, bezpečný) */
 function mdToHtml(md){
   if(!md) return '';
   let html = md.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
@@ -245,7 +253,6 @@ async function buildSlidesEditor(count){
     return;
   }
 
-  // načti existující docs carousel, abychom předvyplnili
   const meta = Array.from({length: count}, (_,i)=>({ title:`Snímek ${i+1}`, desc:'', visible:true }));
   try{
     const snap = await getDocs(query(collection(db,'carousel'), orderBy('__name__')));
@@ -256,16 +263,15 @@ async function buildSlidesEditor(count){
         const x = d.data();
         meta[idx].title   = x.title || meta[idx].title;
         meta[idx].desc    = x.desc  || meta[idx].desc;
-        meta[idx].visible = (x.visible !== false); // default = true
+        meta[idx].visible = (x.visible !== false);
       }
     });
   }catch(e){
     console.warn('[manager] Nelze načíst carousel meta:', e);
   }
 
-  // vygeneruj N editorů
   meta.forEach((m, i)=>{
-    const id = i+1; // 1..N
+    const id = i+1;
     const card = document.createElement('div'); card.className='card';
     card.innerHTML = `
       <div class="stack">
@@ -295,10 +301,8 @@ async function buildSlidesEditor(count){
     const titleEl = card.querySelector(`[data-title="${id}"]`);
     const visEl  = card.querySelector(`[data-visible="${id}"]`);
 
-    // živý náhled na změnu
     descEl.addEventListener('input', ()=> prevEl.innerHTML = mdToHtml(descEl.value||''));
 
-    // uložení jednoho snímku
     card.querySelector(`[data-save="${id}"]`)?.addEventListener('click', async()=>{
       try{
         await setDoc(doc(db,'carousel', String(id)), {
@@ -318,13 +322,13 @@ async function buildSlidesEditor(count){
 document.querySelector('[data-tab="cfg-carousel"]')?.addEventListener('click', ()=>{
   loadCarouselSettings().catch(e=>console.error(e));
 });
-
-// pro případ prvního načtení (když je tab aktivní z URL)
 if(!document.getElementById('cfg-carousel')?.classList.contains('hidden')){
   loadCarouselSettings().catch(()=>{});
 }
 
-// === Weekly info ===
+/* ===========================
+   === Weekly info (Tools) ===
+   =========================== */
 async function ensureSettingsDocExists(){
   const ref = doc(db,'settings','current_week_info');
   const s = await getDoc(ref);
@@ -342,61 +346,14 @@ saveWeekInfo?.addEventListener('click', async()=>{
   alert('Popis týdne uložen');
 });
 
-// === Audity ===
-async function loadAudits(){
-  try{
-    auditsList.innerHTML = '<div class="muted">Načítám…</div>';
-    let snap;
-    try{
-      snap = await getDocs(query(collection(db,'audits'), orderBy('createdAt','desc'), limit(100)));
-      const arr=[]; snap.forEach(d=>arr.push({id:d.id, ...d.data()}));
-      renderAudits(arr);
-    }catch(e){
-      const s2 = await getDocs(collection(db,'audits'));
-      const arr=[]; s2.forEach(d=>arr.push({id:d.id, ...d.data()}));
-      arr.sort((a,b)=> (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
-      renderAudits(arr);
-    }
-  }catch(err){
-    auditsList.innerHTML = `<div class="muted">${err?.message||err}</div>`;
-  }
-}
-function renderAudits(items){
-  auditsList.innerHTML = '';
-  if(!items.length){ auditsList.innerHTML = '<div class="muted">Žádné záznamy.</div>'; return; }
-  items.forEach(a=>{
-    const dt = a.createdAt?.seconds ? new Date(a.createdAt.seconds*1000) : new Date();
-    const card = document.createElement('div'); card.className='card';
-    const sign = (Number(a.delta)>=0? '+':'' )+ Number(a.delta);
-    card.innerHTML = `
-      <div class="row" style="justify-content:space-between; align-items:flex-start">
-        <div>
-          <div><b>${a.actorName||a.actorEmail}</b> <span class="muted">udělil/a</span> <b>${a.targetName||a.targetEmail}</b></div>
-          <div class="muted">${dt.toLocaleString()} • ${a.activityName||a.activityId} • ${a.category}</div>
-        </div>
-        <div class="row">
-          <div style="margin-right:8px"><b>${sign}</b> b.</div>
-          <button class="btn small ghost" data-del-audit="${a.id}">Smazat</button>
-        </div>
-      </div>`;
-    const delBtn = card.querySelector('[data-del-audit]');
-    delBtn?.addEventListener('click', async()=>{
-      if(confirm('Smazat tento auditní záznam?')){ await deleteDoc(doc(db,'audits', a.id)); delBtn.closest('.card')?.remove(); }
-    });
-    auditsList.appendChild(card);
-  });
-}
-recomputeLeaderboard?.addEventListener('click', ()=> alert('Žebříček se načítá dynamicky na Dashboardu.'));
-refreshAudits?.addEventListener('click', ()=> loadAudits());
-
-// Init sequence pro stránku vedoucího
+/* ===========================
+   === Init ===
+   =========================== */
 (async function init(){
   await ensureSettingsDocExists();
   subscribeWeekInfo();
   subscribeActivities();
   subscribeMilestones();
   await buildUsersForManager();
-  await loadAudits();
-  // (volitelně) načti rovnou základ karuselu
-  // await loadCarouselSettings();
+  // Audit UI zrušen – přesunuto na logs.html
 })();
