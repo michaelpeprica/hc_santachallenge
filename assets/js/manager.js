@@ -25,6 +25,7 @@ const msThreshold = document.getElementById('msThreshold');
 const msLabel = document.getElementById('msLabel');
 const msReward = document.getElementById('msReward');
 const msVisible = document.getElementById('msVisible');
+const msImage = document.getElementById('msImage');
 const addMilestone = document.getElementById('addMilestone');
 const milestonesList = document.getElementById('milestonesList');
 
@@ -135,7 +136,7 @@ addMilestone?.addEventListener('click', async()=>{
     label: msLabel.value.trim(),
     reward: (msReward.value||'').trim(),
     visible: !!msVisible.checked,
-    image: (msImage.value||'').trim(),   // <— nově ukládáme i image
+    image: (msImage.value||'').trim(),
     createdAt: serverTimestamp()
   });
   msThreshold.value=''; msLabel.value=''; msReward.value=''; msImage.value=''; msVisible.checked=true;
@@ -143,7 +144,6 @@ addMilestone?.addEventListener('click', async()=>{
 
 // malá pomocná
 function escapeHtml(str){ return (str||'').replace(/[&<>\"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s])); }
-
 
 // === Roles / Operators ===
 async function buildUsersForManager(){
@@ -187,7 +187,7 @@ document.getElementById('assignRole')?.addEventListener('click', async()=>{
 });
 
 /* ===========================
-   === Karusel – nastavení + editor snímků (Markdown + emoji) ===
+   === Karusel – nastavení + editor snímků (Markdown + emoji + viditelnost) ===
    =========================== */
 const carBaseUrl = document.getElementById('carBaseUrl');
 const carCount   = document.getElementById('carCount');
@@ -197,22 +197,17 @@ const carSlidesForm = document.getElementById('carSlidesForm');
 /* Markdown → HTML (bezpečný, základní) */
 function mdToHtml(md){
   if(!md) return '';
-  // escapování
   let html = md.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  // inline formáty
   html = html
     .replace(/\*\*(.*?)\*\*/g,"<b>$1</b>")
     .replace(/\*(.*?)\*/g,"<i>$1</i>")
     .replace(/__(.*?)__/g,"<u>$1</u>")
     .replace(/`([^`]+)`/g,"<code>$1</code>")
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-  // bloky
   html = html
     .replace(/^> (.*)$/gm,'<blockquote>$1</blockquote>')
     .replace(/^- (.*)$/gm,'<li>$1</li>');
-  // seznamy
   html = html.replace(/(<li>.*<\/li>)/gs,'<ul>$1</ul>');
-  // odstavce a řádky
   html = html.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
   return `<p>${html}</p>`;
 }
@@ -251,7 +246,7 @@ async function buildSlidesEditor(count){
   }
 
   // načti existující docs carousel, abychom předvyplnili
-  const meta = Array.from({length: count}, (_,i)=>({ title:`Snímek ${i+1}`, desc:'' }));
+  const meta = Array.from({length: count}, (_,i)=>({ title:`Snímek ${i+1}`, desc:'', visible:true }));
   try{
     const snap = await getDocs(query(collection(db,'carousel'), orderBy('__name__')));
     snap.forEach(d=>{
@@ -259,8 +254,9 @@ async function buildSlidesEditor(count){
       const idx=(parseInt(m[0],10)||0)-1;
       if(idx>=0 && idx<meta.length){
         const x = d.data();
-        meta[idx].title = x.title || meta[idx].title;
-        meta[idx].desc  = x.desc  || meta[idx].desc;
+        meta[idx].title   = x.title || meta[idx].title;
+        meta[idx].desc    = x.desc  || meta[idx].desc;
+        meta[idx].visible = (x.visible !== false); // default = true
       }
     });
   }catch(e){
@@ -282,6 +278,10 @@ async function buildSlidesEditor(count){
           <textarea class="input" data-desc="${id}" rows="5" style="min-width:280px; flex:1" placeholder="Popis v Markdownu (emoji fungují)">${m.desc||''}</textarea>
           <div class="md-preview" data-preview="${id}">${mdToHtml(m.desc||'')}</div>
         </div>
+        <label class="row" style="gap:6px">
+          <input type="checkbox" data-visible="${id}" ${m.visible?'checked':''} />
+          Zobrazit snímek
+        </label>
         <div class="md-help">
           Markdown: <code>**tučně**</code>, <code>*kurzíva*</code>, <code>__podtržení__</code>, <code>\`kód\`</code>, <code>- položka</code>, <code>> citace</code>, <code>[odkaz](https://...)</code><br>
           Enter = nový řádek, 2× Enter = odstavec. Emoji vkládej přímo (např. 🎄✨).
@@ -293,6 +293,7 @@ async function buildSlidesEditor(count){
     const descEl = card.querySelector(`[data-desc="${id}"]`);
     const prevEl = card.querySelector(`[data-preview="${id}"]`);
     const titleEl = card.querySelector(`[data-title="${id}"]`);
+    const visEl  = card.querySelector(`[data-visible="${id}"]`);
 
     // živý náhled na změnu
     descEl.addEventListener('input', ()=> prevEl.innerHTML = mdToHtml(descEl.value||''));
@@ -302,7 +303,8 @@ async function buildSlidesEditor(count){
       try{
         await setDoc(doc(db,'carousel', String(id)), {
           title: (titleEl.value||'').trim(),
-          desc:  (descEl.value||'').trim()
+          desc:  (descEl.value||'').trim(),
+          visible: !!visEl.checked
         }, { merge:true });
         alert(`P${id}: Uloženo.`);
       }catch(e){
@@ -312,10 +314,8 @@ async function buildSlidesEditor(count){
   });
 }
 
-// spustit při vstupu na panel „Karusel“ – pokud používáš tabs per JS, zavolej při aktivaci
-// Pokud máš vlastní tab-switcher, zajisti, aby se při otevření „Karusel“ spustilo:
+// spustit při vstupu na panel „Karusel“
 document.querySelector('[data-tab="cfg-carousel"]')?.addEventListener('click', ()=>{
-  // refresh nastavení a formulářů po každém otevření panelu
   loadCarouselSettings().catch(e=>console.error(e));
 });
 
@@ -397,5 +397,6 @@ refreshAudits?.addEventListener('click', ()=> loadAudits());
   subscribeMilestones();
   await buildUsersForManager();
   await loadAudits();
-  await loadCarouselCfg();   
+  // (volitelně) načti rovnou základ karuselu
+  // await loadCarouselSettings();
 })();
