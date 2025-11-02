@@ -13,9 +13,7 @@ const ROLE_LABELS = {
   operator_tel_kore: 'Operátor – půlení (tel + kore)',
   operator_kore: 'Operátor – korespondence'
 };
-// Kdo se zobrazuje v žebříčku:
 const OPERATOR_ROLES = new Set(['operator_tel','operator_kore','operator_tel_kore']);
-// (pokud chceš mít v žebříčku i vedoucí, přidej 'manager')
 
 function allowedCategoriesFor(role){
   if(role==='operator_tel') return ['tel_weekly'];
@@ -56,15 +54,17 @@ const milestonesPublicList = document.getElementById('milestonesPublicList');
 const closeMilestonesModal = document.getElementById('closeMilestonesModal');
 const avatarModal        = document.getElementById('avatarModal');
 const avatarGrid         = document.getElementById('avatarGrid');
+const openLogsBtn        = document.getElementById('openLogsBtn');
 
 closeMilestonesModal?.addEventListener('click', ()=> milestonesModal.classList.add('hidden'));
+openLogsBtn?.addEventListener('click', ()=> { location.href = './logs.html'; });
 
 /* ============ Stav ============ */
 let currentUser=null, currentRole=null, currentOperatorProfile=null;
 let unsubscribeActs=null, unsubscribeMs=null, unsubscribeSettings=null;
 let unsubscribeOpsAvatars=null;
 
-/* ============ Avatar helpers (lokální soubory + fallback iniciály) ============ */
+/* ============ Avatar helpers ============ */
 function _hueFrom(str){ let h=0; for(let i=0;i<str.length;i++){ h=(h*31 + str.charCodeAt(i))%360; } return h; }
 function _initials(displayName, email){
   const n=(displayName||'').trim();
@@ -83,7 +83,6 @@ function _initialsEl(o){
   span.textContent=_initials(o.displayName, o.email);
   return span;
 }
-/** Vytvoří <span class="avatar"> s IMG (pokud je avatarName) nebo s iniciálami. */
 function createAvatarEl(o, size='md'){
   const el=document.createElement('span');
   el.className=`avatar avatar-${size}`;
@@ -114,7 +113,6 @@ onAuthStateChanged(auth, async (user)=>{
   currentUser = user;
   if(!user) return;
 
-  // operators/{uid}
   const opRef = doc(db,'operators', user.uid);
   const opSnap = await getDoc(opRef);
   if(!opSnap.exists()){
@@ -130,7 +128,6 @@ onAuthStateChanged(auth, async (user)=>{
     currentOperatorProfile = { id:opSnap.id, ...opSnap.data() };
   }
 
-  // role
   const roleRef = doc(db,'roles', user.uid);
   const roleSnap = await getDoc(roleRef);
   currentRole = roleSnap.exists() ? roleSnap.data().role : null;
@@ -138,7 +135,6 @@ onAuthStateChanged(auth, async (user)=>{
   const footerRole = document.getElementById('footerRole');
   if(footerRole) footerRole.textContent = currentRole ? `Role: ${ROLE_LABELS[currentRole] || currentRole}` : 'Role zatím nepřiřazena';
 
-  // UI povolení
   if(currentRole){ addPointsBtn?.removeAttribute('disabled'); operatorSection?.removeAttribute('aria-hidden'); }
   if(currentRole==='manager'){ targetOperator?.classList.remove('hidden'); } else { targetOperator?.classList.add('hidden'); }
 
@@ -151,7 +147,6 @@ onAuthStateChanged(auth, async (user)=>{
     populateTargetOperatorSelect(),
   ]);
 
-  // realtime — kdokoliv upraví operators (včetně avataru) → překresli
   subscribeOperatorsForAvatars();
 });
 
@@ -277,7 +272,7 @@ async function populateTargetOperatorSelect(){
   targetOperator.classList.remove('hidden');
 }
 
-/* ============ Leaderboard (s avatary z ./assets/avatars) ============ */
+/* ============ Leaderboard ============ */
 async function refreshLeaderboard(){
   const [opsSnap, msSnap, rolesSnap, logsSnap] = await Promise.all([
     getDocs(collection(db,'operators')),
@@ -296,7 +291,6 @@ async function refreshLeaderboard(){
 
   const sums={}; logsSnap.forEach(d=>{ const l=d.data(); sums[l.uid]=(sums[l.uid]||0)+Number(l.delta||0); });
 
-  // čteme NÁZEV avatara z operators.avatar (např. "avatar_05")
   const items = ops.map(o=>({
     uid: o.id,
     email: o.email || '',
@@ -346,12 +340,13 @@ async function refreshLeaderboard(){
   });
 }
 
-/* ============ Moje poslední logy ============ */
+/* ============ Moje poslední logy (jen 3) ============ */
 async function loadMyRecent(){
   if(!currentUser){ myRecent.innerHTML=''; return; }
   myRecent.innerHTML = '';
   try{
-    const ql = query(collection(db,'logs'), where('uid','==', currentUser.uid), orderBy('createdAt','desc'), limit(10));
+    // LIMIT 3
+    const ql = query(collection(db,'logs'), where('uid','==', currentUser.uid), orderBy('createdAt','desc'), limit(3));
     const snap = await getDocs(ql);
     const arr=[]; snap.forEach(d=>arr.push({id:d.id, ...d.data()}));
     if(!arr.length){ myRecent.innerHTML = '<div class="muted">Zatím žádné záznamy.</div>'; return; }
@@ -370,7 +365,7 @@ async function loadMyRecent(){
 /* ============ Milestones modal toggle ============ */
 document.addEventListener('keydown', (e)=>{ if(e.key==='m' && e.altKey){ milestonesModal.classList.toggle('hidden'); }});
 
-/* ============ Avatar modal – výběr z ./assets/avatars (avatar_01..avatar_15) ============ */
+/* ============ Avatar modal – výběr ============ */
 async function buildAvatarGrid(){
   avatarGrid.innerHTML='';
   const items = [];
@@ -393,8 +388,7 @@ async function buildAvatarGrid(){
     btn.addEventListener('click', async()=>{
       if(!currentUser) return alert('Nejprve se přihlaste.');
       try{
-        await updateDoc(doc(db,'operators', currentUser.uid), { avatar: it.name }); // ukládáme NÁZEV
-        // cache-busting + event pro okamžitý refresh
+        await updateDoc(doc(db,'operators', currentUser.uid), { avatar: it.name });
         window.__avatarNonce = Date.now();
         window.dispatchEvent(new CustomEvent('avatar-changed', { detail:{ uid:currentUser.uid, avatar:it.name }}));
         avatarModal.classList.add('hidden');
@@ -417,10 +411,8 @@ async function buildAvatarGrid(){
   avatarGrid.appendChild(noneBtn);
 }
 
-// otevření modálu (Alt+A) – můžeš mít i tlačítko v headeru, které zavolá buildAvatarGrid()+show
 document.addEventListener('keydown', (e)=>{ if(e.altKey && (e.key==='a' || e.key==='A')){ buildAvatarGrid(); avatarModal.classList.remove('hidden'); }});
 document.getElementById('closeAvatarModal')?.addEventListener('click', ()=> avatarModal.classList.add('hidden'));
 avatarModal?.addEventListener('click', (e)=>{ if(e.target===avatarModal) avatarModal.classList.add('hidden'); });
 
-// když přijde signál z headeru (pokud používáš picker i tam)
 window.addEventListener('avatar-changed', ()=> refreshLeaderboard());
