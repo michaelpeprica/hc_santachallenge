@@ -131,7 +131,12 @@
     // Nastaví téma, vykreslí header+footer+pozadí a zkontroluje oprávnění manažera
     initTheme();
     initChrome();
-    guard({ requireAuth: true, requireManager: true, onReady(){} });
+    guard({
+      requireAuth: true,
+      requireManager: true,
+      onReady(){ /* stránka se normálně používá */ },
+      onDenied(){ location.href = './denied.html'; } // <— přesměrování pro operátory / bez role
+    });
 
     // Jednoduchý tab-switcher (pro případ, že globální logika chybí)
     const tabs = document.querySelectorAll('.tabs .tab');
