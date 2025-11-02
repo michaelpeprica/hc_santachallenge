@@ -18,7 +18,7 @@ function renderHeader(){
   header.innerHTML = `
     <div class="brand">
       <img src="./assets/hc_logo.png" alt="Home Credit" class="logo" id="hcLogo" />
-      <h1>Vánoční výzva 2025</h1>
+      <h1>Cesta k vánoční kometě</h1>
     </div>
     <nav>
       <a class="btn small" href="./dashboard.html" title="Přehled">📊 Přehled</a>
