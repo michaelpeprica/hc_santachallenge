@@ -12,8 +12,7 @@ export function guard(opts = {}){
   onAuthStateChanged(auth, async (user)=>{
     // přihlášení vyžadováno a není přihlášen
     if(requireAuth && !user){
-      // přesměruj na login, nebo co už používáš:
-      location.href = './login.html';
+      location.href = './index.html';
       return;
     }
 
