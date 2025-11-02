@@ -24,7 +24,7 @@
 
 .rank-media {
   width: 100%;
-  aspect-ratio: 2 / 3; /* nový poměr stran */
+  aspect-ratio: 2 / 3; /* poměr stran 2:3 */
   border-radius: 14px;
   overflow: hidden;
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.15));
@@ -38,22 +38,22 @@
   object-fit: cover;
   display: block;
 }
-/* rozmazaný náhled pro tajné hodnosti */
+/* rozmazaný náhled pro skryté hodnosti */
 .rank-media.blurred img{
   filter: blur(12px) brightness(0.75);
   transform: scale(1.05);
   transform-origin: center;
 }
-    .rank-title{ font-weight:800; font-size:1.05rem }
-    .rank-meta{ color:var(--muted); font-size:.9rem }
-    .rank-secret{ font-weight:700; }
+.rank-title{ font-weight:800; font-size:1.05rem }
+.rank-meta{ color:var(--muted); font-size:.9rem }
+.rank-secret{ font-weight:700; }
   </style>
 </head>
 <body>
   <main>
     <section class="card">
-      <h2 style="margin-top:0">Hodnosti</h2>
-      <p class="muted">Zobrazují se všechny hodnosti. Skryté se ukáží jako „Tajné“ s ilustračním obrázkem.</p>
+      <h2 style="margin-top:0">🏅 Hodnosti</h2>
+      <p class="muted">Těchto hodností můžeš dosáhnout po nasbírání stanoveného počtu bodů. Za každou získanou hodnost dostaneš odměnu.</p>
       <div id="ranksGrid" class="ranks-grid"></div>
     </section>
   </main>
@@ -61,7 +61,7 @@
   <script type="module">
     import { initTheme, initChrome } from './assets/js/ui.js';
     import { guard } from './assets/js/auth-guard.js';
-    import './assets/js/ranks.js?v=2025-11-01-1';
+    import './assets/js/ranks.js?v=2025-11-02-2';
 
     initTheme(); initChrome();
     guard({ requireAuth: true, onReady(){} });
