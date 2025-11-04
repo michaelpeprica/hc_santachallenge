@@ -173,7 +173,7 @@ async function openAvatarPicker(){
   const exts = ['png','jpg','jpeg','webp'];
   let selected = current;
 
-  for(let i=1;i<=21;i++){
+  for(let i=1;i<=22;i++){
     const name = `avatar_${String(i).padStart(2,'0')}`;
 
     const cell  = document.createElement('div'); cell.className = 'cell';
